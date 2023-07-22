@@ -1,5 +1,5 @@
-# Donner_Gallagher
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/19/23
+# Donner_Gallagher_Public
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/19/23, 7/22/23
 # Assisted by GPT-4
 # Analysis of data from Grayson (1990, Table 1; Grayson 1994)
 # References
@@ -10,6 +10,8 @@
 # Ramsey, F. L. and D. W. Schafer. 2013. The Statistical Sleuth: a Course in
 #    Methods of Data Analysis, 3rd Edition. Brooks/Cole Cengage Learning,
 #    Boston MA, 760 pp.
+# Stewart, G. E. 1960. Ordeal by Hunger: the Ordeal of the Donner Party.
+#    Houghton Mifflin, Boston.
 # Approach: added the under 15 data to the Donner data from Statistical Sleuth
 #    3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
 # Grayson (1990) argued Family Group Size, Age, and Sex control survival. This
@@ -17,7 +19,9 @@
 
 # Use data imputation to fill in the 2 missing ages for the 2 Wolfingers
 # Have R determine family size by the numbers of individuals with the same
-# last name (not used here). But, also analyze Grayson's Family Group Size.
+# last name (not used here). But, also analyze Grayson's Family Group Size, 
+# which incorporates information from Stewart's (1960) roster on who was
+# traveling with each Family Travel Group.
 # Code aided by GPT-4 with many dozens iterative prompts.
 
 # Install and load packages
@@ -26,14 +30,19 @@ library(rms)
 library(tidyverse) # contains dplyr and ggplot2
 
 # Read the data
-file_path <- "../data/Donner.csv"
+# file_path <- "../data/Donner.csv"
 # Read the CSV file
-Donner <- read.csv(file_path)
-str(Donner)
+# Donner <- read.csv(file_path)
+
+
+read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/analysis.R")
+
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
 # (1990) Table 1 will be used in this code's analyses.
 Donner$Family_Size <- as.integer(ave(Donner$Last_Name, Donner$Last_Name, FUN =length))
+
+str(Donner)
 
 # This produced slightly different Family Sizes than Grayson (1990 Table 1) in
 # that he merged some families using data that he didn't describe and that
