@@ -30,12 +30,8 @@ library(rms)
 library(tidyverse) # contains dplyr and ggplot2
 
 # Read the data
-# file_path <- "../data/Donner.csv"
-# Read the CSV file
-# Donner <- read.csv(file_path)
 
-
-read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/analysis.R")
+Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
 
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
@@ -145,11 +141,12 @@ pred3 <-  data.frame(
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
 
 # Plot the results for the Family_Group_Size Model
+set.seed(8) 
 ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus,
-                                 color = Sex), width = 0.3, height = 0.03, size = 1.5) +
+            shape = Sex, color = Sex), width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
        title = "rcs(Age, 3) * Sex with 95% confidence intervals",
        color = "Sex") +
@@ -160,7 +157,8 @@ ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Family_Group_Size, y = AdjustedStatus,
-              color = Sex), width = 0.3, height = 0.03, size = 1.5) +
+              shape = Sex, color = Sex), width = 0.3, height = 0.03,
+              size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
        title = "rcs(Family Group Size, 3) with 95% confidence intervals",
        color = "Sex") +
@@ -340,10 +338,12 @@ pred10 <- data.frame(
 Donner_15up$AdjustedStatus <- ifelse(Donner_15up$Status == 0, -0.03, 1.03)
 
 # Plot the results for the additive model: Not as informative as intxn model
+set.seed(8)
 ggplot(pred5, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, color = Sex),
+  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, 
+                                      shape = Sex, color = Sex),
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
        title = "Age + Sex model with 95% confidence intervals",
@@ -352,10 +352,12 @@ ggplot(pred5, aes(x = Age, y = fit, color = Sex)) +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 # Plot the results for the interaction model
+set.seed(8)
 ggplot(pred6, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, color = Sex),
+  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, 
+                                      shape = Sex, color = Sex),
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
        title = "Age * Sex model with 95% confidence intervals",
@@ -364,10 +366,12 @@ ggplot(pred6, aes(x = Age, y = fit, color = Sex)) +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 # Plot the results for the rcs(Age,3) * sex model
+set.seed(8)
 ggplot(pred7, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, color = Sex),
+  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, 
+                                      shape = Sex, color = Sex),
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
        title = "rcs(Age,3) * Sex, with 95% confidence intervals",
@@ -376,11 +380,13 @@ ggplot(pred7, aes(x = Age, y = fit, color = Sex)) +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 # Plot the results for the rcs(Age,3) + sex model
+set.seed(8)
 ggplot(pred10, aes(x = Family_Group_Size, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner_15up, aes(x = Family_Group_Size, y = AdjustedStatus,
-                                 color = Sex), width = 0.3, height = 0.03, size = 1.5) +
+                                 shape = Sex, color = Sex), width = 0.3,
+              height = 0.03, size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
        title = "rcs(Family Group Size, 3) with 95% confidence intervals",
        color = "Sex") +
@@ -392,5 +398,3 @@ ggplot(pred10, aes(x = Family_Group_Size, y = fit, color = Sex)) +
 # Sleuth3 analysis, the Age * Sex interaction is important as determined by the
 # Wilks drop in deviance test (p=0.018), indicating the need for an interaction
 # term, just not a cubic spline for age.
-
-
