@@ -1,6 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/19/23, 7/23/23
-# Assisted by GPT-4
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/24/23
 # Analysis of data from Grayson (1990, Table 1; Grayson 1994)
 # References
 # Grayson, D. K. 1990. Donner Party Deaths: a Demographic Assessment. J.
@@ -22,7 +21,7 @@
 # last name (not used here). But, also analyze Grayson's Family Group Size, 
 # which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
-# Code aided by GPT-4 with many dozens iterative prompts.
+# Code aided by GPT-4 with many dozens of iterative prompts.
 
 # Install and load packages
 library(boot) # for cv.glm function
@@ -63,37 +62,68 @@ Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 ddist <- datadist(Donner)
 options(datadist = "ddist")
 
-# Fit the model with Age, Sex, andd Grayson's (1990) Family_Group_Size
+# Fit the model with Age, Sex, and Grayson's (1990) Family_Group_Size
 mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
-# Note 5 knots was chosen after the GAM cross validation with k = 5 produced
-# strikingly better fit than 3 knots for Family_Group_Size
-# 3 knots was chosen because there were insufficient cases for 4 knots
+
+# Note: 5 knots was chosen for mod1 after the GAM cross validation with k = 5 produced
+# strikingly better fit than 3 knots for Family_Group_Size, confirmed by AIC
 mod1 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod2 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,3), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod3 <- Glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,3), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod2 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod3 <- Glm(Status ~ rcs(Age,4) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 
 # Summary and ANOVA for mod
 summary(mod)
 anova(mod)
+AIC(mod)
 # Sex amd Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
+#   mod     AIC
+# 3 knots 105.8571 * Chosen because within 4 of lowest AIC
+# 4 knots 104.8716
+# 5 knots 103.1862
+# 6 knots Singular Matrix, no estimation possible
 
 # Summary and ANOVA for mod1, Family Group Size alone
-mod1
 summary(mod1)
 anova(mod1)
+AIC(mod1)
+# AIC = 106.51
 # Very strong nonlinear effect of group size
+#   mod2    AIC
+# 3 knots 112.2558
+# 4 knots 111.5511
+# 5 knots 106.5101 *
+# 6 knots 109.9358
+# 7 knots 105.819
+# 8 knots 105.819
+# 9 knots 105.819
 
 # Summary and ANOVA for mod2, an additive model, Age, Sex and 
 # rcs(Family_Group Size)
 summary(mod2)
 anova(mod2)
+AIC(mod2)
+#   mod2    AIC
+# 3 knots 110.3669
+# 4 knots 111.1772
+# 5 knots 102.851 *
+# 6 knots 106.1738
+# 7 knots 102.8313
+# 8 knots 102.8313
+# 9 knots 102.8313
+
 # Strong effect of Family_Group_Size and Sex, but not Age (p=0.24)
 
-# Fit a restricted cubic spline regression (3 knots) for Age and 
-# Family Group Size with an interaction
+# Fit a restricted cubic spline regression for Age and Family Group Size with an
+# interaction
 summary(mod3)
 anova(mod3)
+AIC(mod3)
+#   mod3    AIC
+# 3 knots 94.07029
+# 4 knots 78.58391 *
+# 5 knots 79.2632
+# 6 knots Singular Matrix no estimation possible
 
 # Generate 4 ggplot2 graphics
 # Define new levels for the predictors
@@ -183,7 +213,7 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "Age + Sex + rcs(Family_Group_Size,3)")
+         title = "Age + Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod2
 
 # Plot the results for the rcs(Age,3) * Sex * Family_Group-Size 3-d model
@@ -195,7 +225,7 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,3)")
+         title = "rcs(Age,4) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
 ### These 3 graphs plot confidence regions as wedges: too busy, not used in ms
@@ -206,7 +236,7 @@ plot_3d_mod2 <- plot_ly(data = pred2, x = ~Age, y = ~Family_Group_Size, z = ~fit
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "Age + Sex + rcs(Family_Group_Size,3)")
+         title = "Age + Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod2
 
 # Plot the results for the rcs(Age,3) * Sex model not used
@@ -216,7 +246,7 @@ plot_3d_mod3 <- plot_ly(data = pred3, x = ~Age, y = ~Family_Group_Size, z = ~fit
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,3)")
+         title = "rcs(Age,4) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
 ##### GAM analysis of the full data #####
@@ -417,11 +447,13 @@ mod10 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner_15up, family = bin
 
 # Summary and ANOVA for mod5
 summary(mod5)
+mod5$coefficients
 anova(mod5)
 # Age (p=0.060), Sex (p = 0.027)
 
 # Summary and ANOVA for mod6
 summary(mod6)
+mod6$coefficients
 anova(mod6)
 # Age (p=0.06), Sex (p = 0.07), Age:Sex (p=0.07)
 
