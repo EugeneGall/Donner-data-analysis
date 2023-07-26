@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/24/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/26/23
 # Analysis of data from Grayson (1990, Table 1; Grayson 1994)
 # References
 # Grayson, D. K. 1990. Donner Party Deaths: a Demographic Assessment. J.
@@ -27,7 +27,7 @@
 library(boot) # for cv.glm function
 library(caret) # For GAM cross-validation
 library(mgcv)
-library(plotly)
+library(plotly) # for 3-d graphics
 library(rms)
 library(tidyverse) # contains dplyr and ggplot2
 
@@ -43,9 +43,7 @@ Donner$Family_Size <- as.integer(ave(Donner$Last_Name, Donner$Last_Name, FUN =le
 str(Donner)
 
 # This produced slightly different Family Sizes than Grayson (1990 Table 1) in
-# that he merged some families using data that he didn't describe and that
-# Gallagher does not have. For example, he lists the Donner party as having 16
-# members, but the Donner surname has just 14 members.
+# that he merged some families using data from Stewart's (1960) Roster.
 
 # Convert Status to binary
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
@@ -57,8 +55,8 @@ Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # but the median age for Females was 13, so I opted to using median imputation
 # producing an imputed median age of 18 for both Woffingers.
 
-# Prepare data for rms, Harrell's 'Regression Modeling Strategies' Tjese
-# twp statements are required for the summary of the Glm
+# Prepare data for rms, Harrell's 'Regression Modeling Strategies' These
+# two statements are required for the summary of the Glm
 ddist <- datadist(Donner)
 options(datadist = "ddist")
 
@@ -75,7 +73,7 @@ mod3 <- Glm(Status ~ rcs(Age,4) * Sex + rcs(Family_Group_Size,5), data = Donner,
 summary(mod)
 anova(mod)
 AIC(mod)
-# Sex amd Age with restricted cubic spline 3-knot curve and interaction all with
+# Sex and Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
 #   mod     AIC
 # 3 knots 105.8571 * Chosen because within 4 of lowest AIC
@@ -204,7 +202,7 @@ ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-# Plot the results for the additive model, mod2 (not used in manuscript)
+# Plot the results for the additive model, mod2 (graphic not used in manuscript)
 plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
                         type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
   add_trace(data = subset(pred2, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
@@ -294,7 +292,7 @@ cv_gam <- function(k_value){
 # Test a range of k values
 k_values <- 2:10
 cv_results <- sapply(k_values, cv_gam)
-
+cv_results
 # Determine the optimal k based on minimum CV error
 optimal_k <- k_values[which.min(cv_results)]
 
@@ -321,8 +319,11 @@ pred_data$fit <- plogis(predictions$fit)
 pred_data$lower <- plogis(predictions$fit - 1.96 * predictions$se.fit)
 pred_data$upper <- plogis(predictions$fit + 1.96 * predictions$se.fit)
 
+# plot the GAM analysis (Figure 4 in manuscript)
+
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
+
 set.seed(8)
 
 ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
