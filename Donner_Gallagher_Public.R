@@ -53,7 +53,7 @@ Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # Both are assigned the median age of 18.
 # I had GPT-4 write a dplyr pipe to replace NA's by the medians for each sex,
 # but the median age for Females was 13, so I opted to using median imputation
-# producing an imputed median age of 18 for both Woffingers.
+# producing an imputed median age of 18 for both Wolfingers.
 
 # Prepare data for rms, Harrell's 'Regression Modeling Strategies' These
 # two statements are required for the summary of the Glm
@@ -320,12 +320,9 @@ pred_data$lower <- plogis(predictions$fit - 1.96 * predictions$se.fit)
 pred_data$upper <- plogis(predictions$fit + 1.96 * predictions$se.fit)
 
 # plot the GAM analysis (Figure 4 in manuscript)
-
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
-
 set.seed(8)
-
 ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
@@ -335,9 +332,9 @@ ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
        title = "GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2)) +
-  scale_color_manual(values = c("Male" = "blue", "Female" = "pink"), name = "Sex") +
-  scale_shape_manual(values = c("Male" = 23, "Female" = 16), name = "Sex") + 
-  guides(color = guide_legend(override.aes = list(shape = c(23, 16))))
+  scale_color_manual(values = c("Male" = "blue", "Female" = "pink2"), name = "Sex") +
+  scale_shape_manual(values = c("Male" = 17, "Female" = 16), name = "Sex") + 
+  guides(color = guide_legend(override.aes = list(shape = c(17, 16))))
 
 ### Family Group Size, code from GPT-4 #########################################
 
@@ -433,8 +430,9 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
 
 ####### Redo the Statistical Sleuth Analysis using cases with Age>=15 ##########
 
-# Note Statistical Sleuth (all 3 editions) used only Age 15 and older data. This
-# will analyze those age-pared data. Only mod5 & mod6 plotted with ggplot
+# Note Statistical Sleuth (all 3 editions) used only Age 15 and older data and
+# dropped the 2 Wolfingers. This analysis will analyze those age-pared data. 
+# Only mod5 & mod6 plotted with ggplot
 
 # Create a new data frame with cases where Age is greater than or equal to 15
 Donner_15up <- Donner[Donner$Age >= 15, ]
@@ -550,12 +548,10 @@ ggplot(pred6, aes(x = Age, y = fit, color = Sex)) +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-
 # New code for a GAM 3-d plot. Sex has to be numeric.########################
 
 # Convert 'Sex' from character to numeric (0 for Male, 1 for Female)
 Donner$Sex_numeric <- ifelse(Donner$Sex == "Male", 0, 1)
-
 
 # Setting up cross-validation
 set.seed(123) # for reproducibility
@@ -589,7 +585,6 @@ pred_grid <- expand.grid(Age = new_age,
 pred_grid$Sex_numeric <- ifelse(pred_grid$Sex == "Male", 0, 1)
 pred_gam <- predict(mod_gam, newdata = pred_grid, type = "response")
 
-
 # Combine predictions with grid for plotting
 pred_data <- cbind(pred_grid, fit = pred_gam)
 
@@ -605,7 +600,7 @@ plot_3d_gam <- plot_ly(data = subset(pred_data, Sex == "Male"), x = ~Age, y = ~F
          title = paste0("GAM with k = ", best_k))
 plot_3d_gam
 
-# Overall conclusion on the 15 up analysis
+# Overall conclusion on the 15-up analysis
 # With Age>= 15, there is a poor fit with the rcs(Age,3), but as with the
 # Sleuth3 analysis, the Age * Sex interaction is important as determined by the
 # Wilks drop in deviance test (p=0.018), indicating the need for an interaction
