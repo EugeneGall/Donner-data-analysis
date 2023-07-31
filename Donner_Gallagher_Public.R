@@ -1,7 +1,10 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/26/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/31/23 with help
+# from ChatGPT-4
 # Analysis of data from Grayson (1990, Table 1; Grayson 1994)
 # References
+# Burnham, K. P. and Anderson, D.R. (2004), “Multimodal inference:
+#   understanding AIC and BIC in model selection,” Sociological Methods and
 # Grayson, D. K. 1990. Donner Party Deaths: a Demographic Assessment. J.
 #    Anthropological Research 46: 223-242.
 # Grayson, D. K. 1994. Differential Mortality and the Donner Party Disaster. 
@@ -14,14 +17,17 @@
 # Approach: added the under 15 data to the Donner data from Statistical Sleuth
 #    3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
 # Grayson (1990) argued Family Group Size, Age, and Sex control survival. This
-# analysis will test all three variables.
+#    R code will analyze the effects of all three variables.
 
 # Use data imputation to fill in the 2 missing ages for the 2 Wolfingers
 # Have R determine family size by the numbers of individuals with the same
-# last name (not used here). But, also analyze Grayson's Family Group Size, 
-# which incorporates information from Stewart's (1960) roster on who was
+# last name (not used here). But, also analyze Grayson's (1990) Family Group
+# Size, which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
-# Code aided by GPT-4 with many dozens of iterative prompts.
+
+# Optional Needed to see more output, say in a word processor
+# sink("my_output.txt")   # Optional Redirect output to a file, make sure that
+                          # that the file readme.txt is not open in another app.
 
 # Install and load packages
 library(boot) # for cv.glm function
@@ -31,7 +37,8 @@ library(plotly) # for 3-d graphics
 library(rms)
 library(tidyverse) # contains dplyr and ggplot2
 
-# Read the data
+
+# Read the data from Gallagher's github site (public has read, not edit access)
 
 Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
 
@@ -48,7 +55,7 @@ str(Donner)
 # Convert Status to binary
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
 
-# Impute missing Age values for the two Wolfingers using median imputation
+# Impute missing Age values for the two Wolfingers, using median imputation
 Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # Both are assigned the median age of 18.
 # I had GPT-4 write a dplyr pipe to replace NA's by the medians for each sex,
@@ -56,18 +63,23 @@ Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # producing an imputed median age of 18 for both Wolfingers.
 
 # Prepare data for rms, Harrell's 'Regression Modeling Strategies' These
-# two statements are required for the summary of the Glm
+# two statements are required for the summary of the Harrell's Glm
 ddist <- datadist(Donner)
 options(datadist = "ddist")
 
 # Fit the model with Age, Sex, and Grayson's (1990) Family_Group_Size
-mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# In deciding on knot size, I used the rule that the minimum knot size should
+# be chosen (rcs has a min of 3) unless there is another minimum less than 4
+# AIC units lower (Burnham & Anderson 2004, p 271)
 
-# Note: 5 knots was chosen for mod1 after the GAM cross validation with k = 5 produced
-# strikingly better fit than 3 knots for Family_Group_Size, confirmed by AIC
+# Two methods will be shown for finding the appropriate number of knots:
+
+##### First approach: brute force fitting to find minimal AICs. 
+#     3 is the minimum knot size permitted with Harrell's rcs function
+mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
 mod1 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 mod2 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod3 <- Glm(Status ~ rcs(Age,4) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod3 <- Glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 
 # Summary and ANOVA for mod
 summary(mod)
@@ -76,7 +88,7 @@ AIC(mod)
 # Sex and Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
 #   mod     AIC
-# 3 knots 105.8571 * Chosen because within 4 of lowest AIC
+# 3 knots 104.8571 * Chosen because within 4 of lowest AIC
 # 4 knots 104.8716
 # 5 knots 103.1862
 # 6 knots Singular Matrix, no estimation possible
@@ -113,7 +125,7 @@ AIC(mod2)
 # Strong effect of Family_Group_Size and Sex, but not Age (p=0.24)
 
 # Fit a restricted cubic spline regression for Age and Family Group Size with an
-# interaction
+# interaction effect
 summary(mod3)
 anova(mod3)
 AIC(mod3)
@@ -122,6 +134,95 @@ AIC(mod3)
 # 4 knots 78.58391 *
 # 5 knots 79.2632
 # 6 knots Singular Matrix no estimation possible
+##### End of brute force approach
+
+##### Second approach: GPT4 Streamlined the above code block with functions:
+
+# Function to fit models with one rcs term
+fit_best_rcs <- function(formula_template, data, knot_range) {
+  best_aic <- Inf
+  best_model <- NULL
+  best_knots <- knot_range[1]
+  results <- list()
+  
+  for (k in knot_range) {
+    formula <- as.formula(gsub("KNOTS", k, formula_template))
+    model <- glm(formula, data = data, family = binomial())
+    current_aic <- AIC(model)
+    results[[as.character(k)]] <- current_aic
+    
+    if (current_aic < best_aic && (best_aic - current_aic > 4 || k < best_knots)) {
+      best_aic <- current_aic
+      best_model <- model
+      best_knots <- k
+    }
+  }
+  
+  return(list(model = best_model, knots = best_knots, results = results))
+}
+
+# Function to fit model with two rcs terms
+fit_best_double_rcs <- function(formula, data, knot_range, family = binomial()) {
+  best_aic <- Inf
+  best_k_age <- max(knot_range)
+  best_k_fgs <- max(knot_range)
+  
+  for (k_age in knot_range) {
+    for (k_fgs in knot_range) {
+      tryCatch({
+        current_formula <- as.formula(
+          gsub("knots_age", as.character(k_age), 
+               gsub("knots_fgs", as.character(k_fgs), formula)))
+        current_model <- glm(current_formula, data = data, family = family)
+        current_aic <- AIC(current_model)
+        
+        if (current_aic < best_aic) {
+          best_aic <- current_aic
+          best_k_age <- k_age
+          best_k_fgs <- k_fgs
+        }
+      }, error = function(e) {}) # Handle potential errors
+    }
+  }
+  
+  best_formula <- as.formula(
+    gsub("knots_age", as.character(best_k_age), 
+         gsub("knots_fgs", as.character(best_k_fgs), formula)))
+  best_model <- glm(best_formula, data = data, family = family)
+  
+  return(list(model = best_model, knots_age = best_k_age, knots_fgs = best_k_fgs))
+}
+
+# Extract and print details
+print_details <- function(model_result, model_name) {
+  cat("\n---", model_name, "---\n")
+  if ("knots_age" %in% names(model_result)) {
+    cat("Knots: ", model_result$knots_age, " & ", model_result$knots_fgs, "\n")
+  } else {
+    cat("Knots: ", model_result$knots, "\n")
+  }
+  cat("AIC: ", AIC(model_result$model), "\n")
+  cat("\nModel Summary:\n")
+  print(summary(model_result$model))
+  cat("\nModel Anova:\n")
+  print(anova(model_result$model))
+}
+
+# Fitting models
+# Note that 3 is the minimum knot size for rcs, dozens of warnings with knots>5
+knot_range <- 3:5
+mod_results <- fit_best_rcs("Status ~ rcs(Age, KNOTS) * Sex", Donner, knot_range)
+mod1_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS)", Donner, knot_range)
+mod2_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS) * Sex", Donner, knot_range)
+mod3_results <- fit_best_double_rcs("Status ~ rcs(Age, knots_age) * Sex + rcs(Family_Group_Size, knots_fgs)", Donner, knot_range)
+
+# Printing the details
+print_details(mod_results, "mod")
+print_details(mod1_results, "mod1")
+print_details(mod2_results, "mod2")
+print_details(mod3_results, "mod3")
+
+###### End of GPT-4 AIC optimization code ######
 
 # Generate 4 ggplot2 graphics
 # Define new levels for the predictors
@@ -214,7 +315,7 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
          title = "Age + Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod2
 
-# Plot the results for the rcs(Age,3) * Sex * Family_Group-Size 3-d model
+# Plot the results for the rcs(Age,3) * Sex * rcs(Family_Group-Size,5) 3-d model
 plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
                         type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
   add_trace(data = subset(pred3, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
@@ -223,28 +324,7 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "rcs(Age,4) * Sex + rcs(Family_Group_Size,5)")
-plot_3d_mod3
-
-### These 3 graphs plot confidence regions as wedges: too busy, not used in ms
-# Plot the results for the additive model, mod2
-plot_3d_mod2 <- plot_ly(data = pred2, x = ~Age, y = ~Family_Group_Size, z = ~fit, color = ~Sex, 
-                        type = "mesh3d") %>% 
-  layout(scene = list(zaxis = list(range = c(0, 1)),
-                      xaxis = list(title = "Age"),
-                      yaxis = list(title = "Family Group Size"),
-                      zaxis = list(title = "Estimated Probability of Survival")),
-         title = "Age + Sex + rcs(Family_Group_Size,5)")
-plot_3d_mod2
-
-# Plot the results for the rcs(Age,3) * Sex model not used
-plot_3d_mod3 <- plot_ly(data = pred3, x = ~Age, y = ~Family_Group_Size, z = ~fit, color = ~Sex, 
-                        type = "mesh3d") %>% 
-  layout(scene = list(zaxis = list(range = c(0, 1)),
-                      xaxis = list(title = "Age"),
-                      yaxis = list(title = "Family Group Size"),
-                      zaxis = list(title = "Estimated Probability of Survival")),
-         title = "rcs(Age,4) * Sex + rcs(Family_Group_Size,5)")
+         title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
 ##### GAM analysis of the full data #####
@@ -290,7 +370,9 @@ cv_gam <- function(k_value){
 }
 
 # Test a range of k values
-k_values <- 2:10
+# This statement produced many warnings, reduced max to 8 and increased min to 3
+# k_values <- 2:10
+k_values <- 3:8
 cv_results <- sapply(k_values, cv_gam)
 cv_results
 # Determine the optimal k based on minimum CV error
@@ -344,7 +426,7 @@ folds <- createFolds(Donner$Status, k = 10)
 
 cv_errors <- data.frame(k = integer(), RMSE = numeric(), Rsquared = numeric())
 
-for (k_value in 2:10) {
+for (k_value in 3:9) {
   rmse_values <- numeric()
   rsq_values <- numeric()
   
@@ -427,12 +509,12 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-
 ####### Redo the Statistical Sleuth Analysis using cases with Age>=15 ##########
 
 # Note Statistical Sleuth (all 3 editions) used only Age 15 and older data and
-# dropped the 2 Wolfingers. This analysis will analyze those age-pared data. 
-# Only mod5 & mod6 plotted with ggplot
+# dropped the 2 Wolfingers because Grayson (1990) didn't provide ther age. 
+# This analysis will analyze those age-pared data.
+# Only mod5 & mod6 will be plotted with ggplot
 
 # Create a new data frame with cases where Age is greater than or equal to 15
 Donner_15up <- Donner[Donner$Age >= 15, ]
@@ -476,7 +558,7 @@ summary(mod10)
 anova(mod10)
 # p = 0.005, so strong Family_Group_Size Effect
 
-# Check whether Age is important in a Wilks drop in deviance test:
+# Check whether Age is important in a Wilks drop in deviance chi square test:
 # requires glm, not Harrell's Glm
 mod5g <- glm(Status ~ Age + Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
 mod6g <- glm(Status ~ Age * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
@@ -602,6 +684,10 @@ plot_3d_gam
 
 # Overall conclusion on the 15-up analysis
 # With Age>= 15, there is a poor fit with the rcs(Age,3), but as with the
-# Sleuth3 analysis, the Age * Sex interaction is important as determined by the
+# Sleuth3 analysis, the Age * Sex interaction is important, as determined by the
 # Wilks drop in deviance test (p=0.018), indicating the need for an interaction
-# term, just not a cubic spline for age.
+# term,
+# There is no justification for using a restricted cubic spline fit on the
+# age-pared Donner data.
+
+# sink()   # Optional Turn off redirection
