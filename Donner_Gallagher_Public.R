@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/31/23 with help
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/10/23 with help
 # from ChatGPT-4
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # References
@@ -27,20 +27,23 @@
 # traveling with each Family Travel Group.
 
 # Optional Needed to see more output, say in a word processor
-# sink("my_output.txt")   # Optional Redirect output to a file, make sure that
+sink("my_output.txt")   # Optional Redirect output to a file, make sure that
                           # that the file readme.txt is not open in another app.
 
 # Install and load packages
 library(boot) # for cv.glm function
 library(caret) # For GAM cross-validation
+library(forestplot)  # for the Cox PH plots
 library(mgcv)
 library(plotly) # for 3-d graphics
 library(rms)
+library(survival)  # for Cox Proportional Hazards Modeling
+library(survminer) # for Cox Proportional Hazards Modeling
 library(tidyverse) # contains dplyr and ggplot2
 
 # Read the data from Gallagher's github site (public has read, not edit access)
 
-Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
+Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner_PH.csv")
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
 # (1990) Table 1 will be used in this code's analyses.
@@ -54,12 +57,31 @@ str(Donner)
 # Convert Status to binary
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
 
+# Calculate the Survival_Time which is Death Date or last rescue - First_Snow
+# Convert the character strings to Date objects
+Donner$First_Snow_Date <- as.Date(Donner$First_Snow, format="%Y-%m-%d")
+Donner$Last_Date_Date <- as.Date(Donner$Last_Date, format="%Y-%m-%d")
+
+# Calculate the difference in days
+Donner$Survival_Time <- as.numeric(Donner$Last_Date_Date - Donner$First_Snow_Date)
+
+# View the first few rows of the data frame to confirm the results
+head(Donner)
+
 # Impute missing Age values for the two Wolfingers, using median imputation
 Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # Both are assigned the median age of 18.
 # I had GPT-4 write a dplyr pipe to replace NA's by the medians for each sex,
 # but the median age for Females was 13, so I opted to using median imputation
 # producing an imputed median age of 18 for both Wolfingers.
+
+### Optional: Delete 9 cases for individuals who died before the first Snowstorm
+# This should reduce the number of cases to 87-9 =78
+
+Donner <- Donner %>%
+  filter(Delete != 1)
+# View the structure to confirm the filtering
+str(Donner)
 
 # Prepare data for rms, Harrell's 'Regression Modeling Strategies' These
 # two statements are required for the summary of the Harrell's Glm
@@ -76,7 +98,8 @@ options(datadist = "ddist")
 # 1) Brute force by manually plugging in different knot numbers in Glm
 # 2) An optimization routine
 
-##### First approach: brute force fitting to find minimal AICs. 
+##### First approach: brute force fitting to find minimal AICs.
+##### Don't use for deleted data, too time-consuming.
 #     3 is the minimum knot size permitted with Harrell's rcs function
 mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
 mod1 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
@@ -287,8 +310,9 @@ ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus,
             shape = Sex, color = Sex), width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-       title = "rcs(Age, 3) * Sex with 95% confidence intervals",
-       color = "Sex") +
+#       title = "rcs(Age, 3) * Sex with 95% confidence intervals",
+  title = "78 travelers, rcs(Age, 3) * Sex with 95% confidence intervals",
+        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
@@ -300,7 +324,8 @@ ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
               shape = Sex, color = Sex), width = 0.3, height = 0.03,
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
-       title = "rcs(Family Group Size, 5) with 95% confidence intervals",
+#      title = "rcs(Family Group Size, 5) with 95% confidence intervals",
+title = "78 travelers, rcs(Family Group Size, 5) with 95% confidence intervals",
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
@@ -314,7 +339,8 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "Age + Sex + rcs(Family_Group_Size,5)")
+#         title = "Age + Sex + rcs(Family_Group_Size,5)")
+       title = "78 travelers, Age + Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod2
 
 # Plot the results for the rcs(Age,3) * Sex * rcs(Family_Group-Size,5) 3-d model
@@ -326,11 +352,12 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-         title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
+#          title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
+      title = "78 travelers, rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
 ##### GAM analysis of the full data #####
-
+# Change labels if the data are filtered to 78 cases
 ######## k-fold cross validation to find optimal k for the GAM
 
 # Set a seed for reproducibility
@@ -413,7 +440,8 @@ ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus),
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-       title = "GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
+#       title = "GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
+ title = "78 travelers, GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2)) +
   scale_color_manual(values = c("Male" = "blue", "Female" = "pink2"), name = "Sex") +
@@ -428,7 +456,7 @@ folds <- createFolds(Donner$Status, k = 10)
 
 cv_errors <- data.frame(k = integer(), RMSE = numeric(), Rsquared = numeric())
 
-for (k_value in 3:9) {
+for (k_value in 3:8) {
   rmse_values <- numeric()
   rsq_values <- numeric()
   
@@ -505,12 +533,15 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
                                  shape = Sex, color = Sex), width = 0.3, height = 0.03,
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
-       title = paste0("GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
+#      title = paste0("GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
+ title = paste0("78 travelers, GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 ####### Redo the Statistical Sleuth Analysis using cases with Age>=15 ##########
+
+## No real need to redo these analyses with the filtered data.
 
 # Note Statistical Sleuth (all 3 editions) used only Age 15 and older data and
 # dropped the 2 Wolfingers because Grayson (1990) didn't provide ther age. 
@@ -691,4 +722,152 @@ plot_3d_gam
 # There is no justification for using a restricted cubic spline fit on the
 # age-pared Donner data.
 
-# sink()   # Optional Turn off redirection
+##### Cox Proportional Hazards Model
+
+##    Code & analysis from Harrell (2015) Chapter 20 (p 475-519)
+#    Couldn't get Harrell code to work
+
+Donner$Death <- abs(Donner$Status-1)
+# Code from GPT-4
+# 1. Load necessary packages
+# install.packages("survival")
+# install.packages("survminer")
+
+# Assuming the data frame is already loaded as `Donner`
+# 2. Fit the Cox proportional hazards model
+cox_model <- coxph(Surv(Survival_Time, Death) ~ Sex, data = Donner)
+
+# Print the summary of the model
+print(summary(cox_model))
+
+# Check the proportional hazards assumption with 
+ph_test <- cox.zph(cox_model)
+
+# Print the results
+print(ph_test)
+
+# Plot the Schoenfeld residuals
+plot(ph_test)
+
+# 3. Visualize the results 
+# Kaplan-Meier survival curve
+km_fit <- survfit(Surv(Survival_Time, Death) ~ Sex, data = Donner)
+ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
+           pval = TRUE, pval.coord = c(0.8, 0.25),
+           legend = "right", legend.title = "Sex",
+           legend.labs = c("Female", "Male"),
+           risk.table.y.text = FALSE)
+
+# Hazard ratio plot
+# Convert model coefficients to hazard ratios
+hr <- exp(coef(cox_model))
+ci <- exp(confint(cox_model))
+
+# Create a data frame for plotting
+df <- data.frame(
+  Variable = names(hr),
+  HR = hr,
+  lower = ci[, 1],
+  upper = ci[, 2]
+)
+
+# Organize data for forestplot
+labeltext <- list(
+  c("", df$Variable),
+  c("HR", as.character(round(df$HR, 2))),
+  c("Lower 95% CI", as.character(round(df$lower, 2))),
+  c("Upper 95% CI", as.character(round(df$upper, 2)))
+)
+
+# Plot using forestplot
+forestplot(
+  labeltext = labeltext,
+  graph.pos = 3,
+  mean = c(NA, df$HR),
+  lower = c(NA, df$lower),
+  upper = c(NA, df$upper),
+  xlog = TRUE, # because hazard ratios are typically plotted on a log scale
+  clip = c(0.5, 2), # you can adjust these values if necessary
+  xticks = c(0.5, 1, 2),
+  title = "Hazard Ratios (95% CI)"
+)
+
+# 4. Teamster Hired Hands analysis
+
+cox_model_2 <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
+
+# Print the summary of the model
+print(summary(cox_model_2))
+
+# Check the proportional hazards assumption
+ph_test_2 <- cox.zph(cox_model_2)
+
+# Print the results
+print(ph_test_2)
+
+# Plot the Schoenfeld residuals
+plot(ph_test_2)
+
+# 5. Visualize the results 
+# Kaplan-Meier survival curve
+km_fit <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
+ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
+           pval = TRUE, pval.coord = c(0.8, 0.25),
+           legend = "right", legend.title = "Sex",
+           legend.labs = c("Family Member", "Teamster"),
+           risk.table.y.text = FALSE)
+
+# Hazard ratio plot
+# Convert model coefficients to hazard ratios
+hr <- exp(coef(cox_model_2))
+ci <- exp(confint(cox_model_2))
+
+# Create a data frame for plotting
+df <- data.frame(
+  Variable = names(hr),
+  HR = hr,
+  lower = ci[, 1],
+  upper = ci[, 2]
+)
+
+# Organize data for forestplot
+labeltext <- list(
+  c("", df$Variable),
+  c("HR", as.character(round(df$HR, 2))),
+  c("Lower 95% CI", as.character(round(df$lower, 2))),
+  c("Upper 95% CI", as.character(round(df$upper, 2)))
+)
+
+# Plot using forestplot
+forestplot(
+  labeltext = labeltext,
+  graph.pos = 3,
+  mean = c(NA, df$HR),
+  lower = c(NA, df$lower),
+  upper = c(NA, df$upper),
+  xlog = TRUE, # because hazard ratios are typically plotted on a log scale
+  clip = c(0.5, 2), # you can adjust these values if necessary
+  xticks = c(0.5, 1, 2),
+  title = "Hazard Ratios (95% CI)"
+)
+
+# The proportional hazards assumption is clearly violated, so GPT-4 suggested
+# an alternative:
+Donner$SurvTime_Teamster <- with(Donner, Survival_Time * Teamster_Hired_Hands)
+cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands + SurvTime_Teamster, data = Donner)
+summary(cox_time_dep)
+
+library(survminer)
+
+# Fit Kaplan-Meier survival curve
+km_fit_2 <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
+
+# Plot the KM curve
+ggsurvplot(km_fit_2, data = Donner, risk.table = TRUE,
+           pval = TRUE, pval.coord = c(0.8, 0.25),
+           legend = "right", legend.title = "Group",
+           legend.labs = c("Non-Teamster", "Teamster"),
+           risk.table.y.text = FALSE)
+
+ sink()   # Optional Turn off redirection
+ 
