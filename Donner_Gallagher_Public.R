@@ -13,12 +13,13 @@
 #    Methods of Data Analysis, 3rd Edition. Brooks/Cole Cengage Learning,
 #    Boston MA, 760 pp.
 # Stewart, G. E. 1960. Ordeal by Hunger: the Ordeal of the Donner Party.
-#    Houghton Mifflin, Boston.
+#    Houghton Mifflin, Boston.392 pp.
 # 
 # Approach: added the under 15 Age data to the Donner data from Statistical
 # Sleuth 3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
 # Grayson (1990) argued Family Group Size, Age, and Sex control survival. This
 # R code will analyze the effects of all three variables.
+# Reviewed above books to find death dates for surviving travelers.
 
 # Use data imputation to fill in the 2 missing ages for the 2 Wolfingers
 # Have R determine family size by the numbers of individuals with the same
@@ -26,7 +27,7 @@
 # Size, which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
 
-# Optional Needed to see more output, say in a word processor
+# Optional Needed to see full output in a word processor
 sink("my_output.txt")   # Optional Redirect output to a file, make sure that
                           # that the file readme.txt is not open in another app.
 
@@ -43,7 +44,7 @@ library(tidyverse) # contains dplyr and ggplot2
 
 # Read the data from Gallagher's github site (public has read, not edit access)
 
-Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner_PH.csv")
+Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
 # (1990) Table 1 will be used in this code's analyses.
@@ -788,11 +789,11 @@ forestplot(
   upper = c(NA, df$upper),
   xlog = TRUE, # because hazard ratios are typically plotted on a log scale
   clip = c(0.5, 2), # you can adjust these values if necessary
-  xticks = c(0.5, 1, 2),
+  xticks = c(0.5, 1, 2.5),
   title = "Hazard Ratios (95% CI)"
 )
 
-# 4. Teamster Hired Hands analysis
+# 4. Teamster/Servant analyses
 
 cox_model_2 <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
 
