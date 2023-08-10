@@ -1,7 +1,7 @@
 # Donner_Gallagher_Public
 # Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 7/31/23 with help
 # from ChatGPT-4
-# Analysis of data from Grayson (1990, Table 1; Grayson 1994)
+# Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # References
 # Burnham, K. P. and Anderson, D.R. (2004), “Multimodal inference:
 #   understanding AIC and BIC in model selection,” Sociological Methods and
@@ -14,10 +14,11 @@
 #    Boston MA, 760 pp.
 # Stewart, G. E. 1960. Ordeal by Hunger: the Ordeal of the Donner Party.
 #    Houghton Mifflin, Boston.
-# Approach: added the under 15 data to the Donner data from Statistical Sleuth
-#    3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
+# 
+# Approach: added the under 15 Age data to the Donner data from Statistical
+# Sleuth 3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
 # Grayson (1990) argued Family Group Size, Age, and Sex control survival. This
-#    R code will analyze the effects of all three variables.
+# R code will analyze the effects of all three variables.
 
 # Use data imputation to fill in the 2 missing ages for the 2 Wolfingers
 # Have R determine family size by the numbers of individuals with the same
@@ -37,11 +38,9 @@ library(plotly) # for 3-d graphics
 library(rms)
 library(tidyverse) # contains dplyr and ggplot2
 
-
 # Read the data from Gallagher's github site (public has read, not edit access)
 
 Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
-
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
 # (1990) Table 1 will be used in this code's analyses.
@@ -69,10 +68,13 @@ options(datadist = "ddist")
 
 # Fit the model with Age, Sex, and Grayson's (1990) Family_Group_Size
 # In deciding on knot size, I used the rule that the minimum knot size should
-# be chosen (rcs has a min of 3) unless there is another minimum less than 4
-# AIC units lower (Burnham & Anderson 2004, p 271)
+# be chosen (rcs has a min of 3) unless there is another larger number of knots
+# with an AIC which is more than than 4 AIC units lower (Burnham & Anderson
+# 2004, p 271)
 
-# Two methods will be shown for finding the appropriate number of knots:
+# Two methods will be coded for finding the appropriate number of knots:
+# 1) Brute force by manually plugging in different knot numbers in Glm
+# 2) An optimization routine
 
 ##### First approach: brute force fitting to find minimal AICs. 
 #     3 is the minimum knot size permitted with Harrell's rcs function
@@ -125,7 +127,7 @@ AIC(mod2)
 # Strong effect of Family_Group_Size and Sex, but not Age (p=0.24)
 
 # Fit a restricted cubic spline regression for Age and Family Group Size with an
-# interaction effect
+# rcs(Age,3)* Sex interaction effect
 summary(mod3)
 anova(mod3)
 AIC(mod3)
@@ -468,7 +470,6 @@ cv_errors
 # The value of k with the smallest RMSE would be the optimal choice
 best_k <- cv_errors[which.min(cv_errors$RMSE),]$k
 best_k
-
 
 # Fit the GAM with optimal k
 
