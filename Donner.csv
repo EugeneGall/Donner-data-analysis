@@ -13,7 +13,7 @@
 12,28,Male,Died,Denton,John,1,1846-10-28,1847-02-27,#VALUE!,0,1,TeamsterfromSheffieldEng.TravelingwithGeorgeDonner
 13,40,Male,Died,Dolan,Patrick,1,1846-10-28,1846-12-29,#VALUE!,0,1,Teamster
 14,14,Female,Survived,Donner,Elitha,16,1846-10-28,1847-04-29,#VALUE!,0,0,
-15,45,Female,Died,Donner,Elizabeth,16,1846-10-28,1847-03-10,#VALUE!,0,0,Wikipedia:afewdaysafterMarch7
+15,45,Female,Died,Donner,Elizabeth,16,1846-10-28,1847-03-10,#VALUE!,0,0,Wikipedia:diedafewdaysafterMarch7
 16,3,Female,Survived,Donner,Eliza,16,1846-10-28,1847-04-29,#VALUE!,0,0,
 17,6,Female,Survived,Donner,Frances,16,1846-10-28,1847-04-29,#VALUE!,0,0,
 18,62,Male,Died,Donner,George,16,1846-10-28,1847-03-30,#VALUE!,0,0,"Wikipedia,diednearendofmonth"
@@ -30,7 +30,7 @@
 29,3,Male,Died,Eddy,James,4,1846-10-28,1847-03-14,#VALUE!,0,0,
 30,1,Female,Died,Eddy,Margaret,4,1846-10-28,1847-02-04,#VALUE!,0,0,
 31,28,Male,Survived,Eddy,William,4,1846-10-28,1847-04-29,#VALUE!,0,0,
-32,28,Male,Died,Elliot,Milton,1,1846-10-28,1847-02-09,#VALUE!,0,1,Reedteamster
+32,28,Male,Died,Elliot,Milton,1,1846-10-28,1847-02-09,#VALUE!,0,1,Reed teamster
 33,23,Male,Died,Fosdick,Jay,12,1846-10-28,1847-01-07,#VALUE!,0,0,
 34,22,Female,Survived,Fosdick,Sarah,12,1846-10-28,1847-04-29,#VALUE!,0,0,
 35,4,Male,Died,Foster,George,13,1846-10-28,1847-03-10,#VALUE!,0,0,TragedyintheSierraNevada:Kesebergaccusedofkillinghim
@@ -83,6 +83,6 @@
 82,35,Male,Died,Stanton,Charles,1,1846-10-28,1846-12-20,#VALUE!,0,1,Teamsterortravelingunattached
 83,23,Male,Survived,Trubode,JB,1,1846-10-28,1847-04-29,#VALUE!,0,1,TeamsterforGeorgeDonner
 84,24,Male,Died,Williams,Baylis,2,1846-10-28,1846-12-15,#VALUE!,0,1,Wikipediasays12-15;Reedemployee
-85,25,Female,Survived,Williams,Eliza,2,1846-10-28,1847-04-29,#VALUE!,0,1,"HiredgirlforReed,sisterofBaylis"
+85,25,Female,Survived,Williams,Eliza,2,1846-10-28,1847-04-29,#VALUE!,0,1,"Hired girl for Reed,sister of Baylis"
 86,,Male,Died,Wolfinger,Mr,2,1846-10-28,1846-10-13,#VALUE!,1,0,Wikipedia
-87,,Female,Survived,Wolfinger,Mrs,2,1846-10-28,1847-04-29,#VALUE!,1,0,Lostafterhusbandmurdered
+87,,Female,Survived,Wolfinger,Mrs,2,1846-10-28,1847-04-29,#VALUE!,1,0,Lost after husband murdered
