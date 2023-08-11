@@ -12,32 +12,35 @@
 # Ramsey, F. L. and D. W. Schafer. 2013. The Statistical Sleuth: a Course in
 #    Methods of Data Analysis, 3rd Edition. Brooks/Cole Cengage Learning,
 #    Boston MA, 760 pp.
+# Rarek, E. 2008. Desperate Passage: The Donner Party’s Perilous Journey West.
+#    Oxford University Press, Oxford. 304 pp.
 # Stewart, G. E. 1960. Ordeal by Hunger: the Ordeal of the Donner Party.
 #    Houghton Mifflin, Boston.392 pp.
 # 
-# Approach: added the under 15 Age data to the Donner data from Statistical
-# Sleuth 3rd edition, Changed age of Patrick Breen to 51 (Grayson, 1994, p 155)
-# Grayson (1990) argued Family Group Size, Age, and Sex control survival. This
-# R code will analyze the effects of all three variables.
-# Reviewed above books to find death dates for surviving travelers.
+# Approach: 1) add the under 15 Age data to the Donner data from Statistical
+# Sleuth 3rd edition, 2) change age of Patrick Breen to 51 (Grayson, 1994, 
+# p 155). 3) Grayson (1990) argued Family Group Size, Age, and Gender control
+# survival and Rarek emphasized the poor survivorship of teamsters. This R code
+# will analyze the effects of all four variables. 4) Reviewed above books to
+# find death dates for surviving travelers.
 
-# Use data imputation to fill in the 2 missing ages for the 2 Wolfingers
+# Used data imputation to fill in the 2 missing ages for the 2 Wolfingers
 # Have R determine family size by the numbers of individuals with the same
-# last name (not used here). But, also analyze Grayson's (1990) Family Group
+# last name (not used here). But, also analyzed Grayson's (1990) Family Group
 # Size, which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
 
-# Optional Needed to see full output in a word processor
+# Optional statement eeded to see full output in a word processor:
 sink("my_output.txt")   # Optional Redirect output to a file, make sure that
-                          # that the file readme.txt is not open in another app.
+                        # that the file readme.txt is not open in another app.
 
 # Install and load packages
 library(boot) # for cv.glm function
 library(caret) # For GAM cross-validation
 library(forestplot)  # for the Cox PH plots
-library(mgcv)
+library(mgcv) # Wood's package for GAMs
 library(plotly) # for 3-d graphics
-library(rms)
+library(rms)    # Harrell's regression modeling strategies pacakge
 library(survival)  # for Cox Proportional Hazards Modeling
 library(survminer) # for Cox Proportional Hazards Modeling
 library(tidyverse) # contains dplyr and ggplot2
@@ -53,17 +56,19 @@ Donner$Family_Size <- as.integer(ave(Donner$Last_Name, Donner$Last_Name, FUN =le
 str(Donner)
 
 # This produced slightly different Family Sizes than Grayson (1990 Table 1) in
-# that he merged some families using data from Stewart's (1960) Roster.
+# that Grayson (1990) included family links using data from Stewart's (1960, 
+# p 363-364) Donner Party Roster.
 
 # Convert Status to binary
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
 
-# Calculate the Survival_Time which is Death Date or last rescue - First_Snow
+# Calculate the Survival_Time which is Death Date or last rescue (Lewis 
+# Keseberg - First_Snow, October 28 1846.
 # Convert the character strings to Date objects
 Donner$First_Snow_Date <- as.Date(Donner$First_Snow, format="%Y-%m-%d")
 Donner$Last_Date_Date <- as.Date(Donner$Last_Date, format="%Y-%m-%d")
 
-# Calculate the difference in days
+# Calculate the difference in days for individual survivorship
 Donner$Survival_Time <- as.numeric(Donner$Last_Date_Date - Donner$First_Snow_Date)
 
 # View the first few rows of the data frame to confirm the results
