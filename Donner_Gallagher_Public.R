@@ -1,7 +1,7 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/10/23 with help
-# from ChatGPT-4
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/11/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
+# Aided by OpenAI GPT-4
 # References
 # Burnham, K. P. and Anderson, D.R. (2004), “Multimodal inference:
 #   understanding AIC and BIC in model selection,” Sociological Methods and
@@ -31,7 +31,7 @@
 # traveling with each Family Travel Group.
 
 # Optional statement eeded to see full output in a word processor:
-sink("my_output.txt")   # Optional Redirect output to a file, make sure that
+# sink("my_output.txt")   # Optional Redirect output to a file, make sure that
                         # that the file readme.txt is not open in another app.
 
 # Install and load packages
@@ -63,7 +63,7 @@ str(Donner)
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
 
 # Calculate the Survival_Time which is Death Date or last rescue (Lewis 
-# Keseberg - First_Snow, October 28 1846.
+# Keseberg) - First_Snow, October 28 1846.
 # Convert the character strings to Date objects
 Donner$First_Snow_Date <- as.Date(Donner$First_Snow, format="%Y-%m-%d")
 Donner$Last_Date_Date <- as.Date(Donner$Last_Date, format="%Y-%m-%d")
@@ -81,8 +81,8 @@ Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 # but the median age for Females was 13, so I opted to using median imputation
 # producing an imputed median age of 18 for both Wolfingers.
 
-### Optional: Delete 9 cases for individuals who died before the first Snowstorm
-# This should reduce the number of cases to 87-9 =78
+### Optional: Delete 8 cases for individuals who died before the first Snowstorm
+# on 1846-10-28. This will reduce the number of cases to 87 - 8 = 79
 
 Donner <- Donner %>%
   filter(Delete != 1)
@@ -105,7 +105,7 @@ options(datadist = "ddist")
 # 2) An optimization routine
 
 ##### First approach: brute force fitting to find minimal AICs.
-##### Don't use for deleted data, too time-consuming.
+##### Don't use for pared data, too time-consuming.
 #     3 is the minimum knot size permitted with Harrell's rcs function
 mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
 mod1 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
@@ -119,10 +119,10 @@ AIC(mod)
 # Sex and Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
 #   mod     AIC
-# 3 knots 104.8571 * Chosen because within 4 of lowest AIC
-# 4 knots 104.8716
-# 5 knots 103.1862
-# 6 knots Singular Matrix, no estimation possible
+# 3 knots  92.89408 * Chosen because within 4 of lowest AIC
+# 4 knots  95.25095
+# 5 knots  92.62451 ** Not chosen because only 0.26957 less than 3 knot AIC
+# 6 knots Apparently Singular Matrix, no estimation possible
 
 # Summary and ANOVA for mod1, Family Group Size alone
 summary(mod1)
@@ -131,29 +131,28 @@ AIC(mod1)
 # AIC = 106.51
 # Very strong nonlinear effect of group size
 #   mod2    AIC
-# 3 knots 112.2558
-# 4 knots 111.5511
-# 5 knots 106.5101 *
-# 6 knots 109.9358
-# 7 knots 105.819
-# 8 knots 105.819
-# 9 knots 105.819
-
+# 3 knots 104.1358
+# 4 knots 101.3932
+# 5 knots 100.6453 * Chosen because within 4 AIC of minimum of 97.10704
+# 6 knots 99.11325
+# 7 knots 97.10704
+# 8 knots 97.10704
+# 9 knots 97.10704
 # Summary and ANOVA for mod2, an additive model, Age, Sex and 
 # rcs(Family_Group Size)
 summary(mod2)
 anova(mod2)
 AIC(mod2)
 #   mod2    AIC
-# 3 knots 110.3669
-# 4 knots 111.1772
-# 5 knots 102.851 *
-# 6 knots 106.1738
-# 7 knots 102.8313
-# 8 knots 102.8313
-# 9 knots 102.8313
+# 3 knots 101.5496
+# 4 knots 100.6285
+# 5 knots  97.38427 * Chosen because within 4 AIC of minimum
+# 6 knots  94.06806
+# 7 knots  94.03242
+# 8 knots  94.03242
+# 9 knots  94.03242
 
-# Strong effect of Family_Group_Size and Sex, but not Age (p=0.24)
+# Strong effect of Sex, but not Age (p=0.24) or Family Group Size (p= 0.29)
 
 # Fit a restricted cubic spline regression for Age and Family Group Size with an
 # rcs(Age,3)* Sex interaction effect
@@ -317,7 +316,7 @@ ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
             shape = Sex, color = Sex), width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
 #       title = "rcs(Age, 3) * Sex with 95% confidence intervals",
-  title = "78 travelers, rcs(Age, 3) * Sex with 95% confidence intervals",
+  title = "79 travelers, rcs(Age, 3) * Sex with 95% confidence intervals",
         color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
@@ -331,7 +330,7 @@ ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
 #      title = "rcs(Family Group Size, 5) with 95% confidence intervals",
-title = "78 travelers, rcs(Family Group Size, 5) with 95% confidence intervals",
+title = "79 travelers, rcs(Family Group Size, 5) with 95% confidence intervals",
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
@@ -346,7 +345,7 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
 #         title = "Age + Sex + rcs(Family_Group_Size,5)")
-       title = "78 travelers, Age + Sex + rcs(Family_Group_Size,5)")
+       title = "79 travelers, Age + Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod2
 
 # Plot the results for the rcs(Age,3) * Sex * rcs(Family_Group-Size,5) 3-d model
@@ -359,11 +358,10 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
 #          title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
-      title = "78 travelers, rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
+      title = "79 travelers, rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
 ##### GAM analysis of the full data #####
-# Change labels if the data are filtered to 78 cases
 ######## k-fold cross validation to find optimal k for the GAM
 
 # Set a seed for reproducibility
@@ -436,7 +434,7 @@ pred_data$fit <- plogis(predictions$fit)
 pred_data$lower <- plogis(predictions$fit - 1.96 * predictions$se.fit)
 pred_data$upper <- plogis(predictions$fit + 1.96 * predictions$se.fit)
 
-# plot the GAM analysis (Figure 4 in manuscript)
+# plot the GAM analysis (Figure 3 in manuscript)
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
 set.seed(8)
@@ -447,7 +445,7 @@ ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
 #       title = "GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
- title = "78 travelers, GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
+ title = "79 travelers, GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2)) +
   scale_color_manual(values = c("Male" = "blue", "Female" = "pink2"), name = "Sex") +
@@ -540,7 +538,7 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
 #      title = paste0("GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
- title = paste0("78 travelers, GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
+ title = paste0("79 travelers, GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
@@ -568,7 +566,7 @@ mod10 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner_15up, family = bin
 summary(mod5)
 mod5$coefficients
 anova(mod5)
-# Age (p=0.060), Sex (p = 0.027)
+# Age (p=0.028), Sex (p = 0.022)
 
 # Summary and ANOVA for mod6
 summary(mod6)
@@ -606,7 +604,7 @@ anova(mod5g, mod6g, test = "Chi")
 # Should we spend the extra df on the restricted cubic spline for Age: NO!
 mod7g <- glm(Status ~ rcs(Age,3) * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
 anova(mod6g, mod7g, test = "Chi")
-# p = 0.575, no extra explanatory value of rcs(Age,3)
+# p = 0.66, no extra explanatory value of rcs(Age,3)
 
 # Plot the data
 # Define new levels for the predictors
@@ -863,17 +861,5 @@ Donner$SurvTime_Teamster <- with(Donner, Survival_Time * Teamster_Hired_Hands)
 cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands + SurvTime_Teamster, data = Donner)
 summary(cox_time_dep)
 
-library(survminer)
-
-# Fit Kaplan-Meier survival curve
-km_fit_2 <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
-
-# Plot the KM curve
-ggsurvplot(km_fit_2, data = Donner, risk.table = TRUE,
-           pval = TRUE, pval.coord = c(0.8, 0.25),
-           legend = "right", legend.title = "Group",
-           legend.labs = c("Non-Teamster", "Teamster"),
-           risk.table.y.text = FALSE)
-
- sink()   # Optional Turn off redirection
+# sink()   # Optional Turn off redirection
  
