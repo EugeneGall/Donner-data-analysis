@@ -745,7 +745,7 @@ forestplot(
 # Women      5     0
 # Men        2     8
 
-donner_matrix <- matrix(c(5, 2, 0, 8), nrow=2, byrow=TRUE)
+donner_matrix <- matrix(c(5, 0, 2, 8), nrow=2, byrow=TRUE)
 colnames(donner_matrix) <- c("Survived", "Died")
 rownames(donner_matrix) <- c("Women", "Men")
 print(donner_matrix)
