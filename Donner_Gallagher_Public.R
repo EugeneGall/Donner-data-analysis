@@ -22,16 +22,17 @@
 # p 155). 3) Grayson (1990) argued Family Group Size, Age, and Gender control
 # survival and Rarek emphasized the poor survivorship of teamsters and servants.
 # This R code will analyze the effects of all four variables. 4) Reviewed above
-# books to find death dates for surviving travelers.
+# books to find death dates for surviving travelers and performed survival 
+# analysis
 
-# Used data imputation to fill in the missing ages for Mr. Wolfinger
+# Used data imputation to fill in the missing age for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
 # last name (not used here). But, also analyzed Grayson's (1990) Family Group
 # Size, which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
 
-# Optional statement eeded to see full output in a word processor:
-# sink("my_output.txt")   # Optional Redirect output to a file, make sure that
+# Optional statement needed to see full output in a word processor:
+sink("my_output.txt")   # Optional Redirect output to a file, make sure that
                         # that the file readme.txt is not open in another app.
 
 # Install and load packages
@@ -766,5 +767,5 @@ print(paste("Odds Ratio:", test_result$estimate))
 print(paste("95% Confidence Interval:", round(test_result$conf.int[1], 3), "to", round(test_result$conf.int[2], 3)))
 
 
-# sink()   # Optional Turn off redirection
+sink()   # Optional Turn off redirection
  
