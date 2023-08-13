@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/11/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/12/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -20,11 +20,11 @@
 # Approach: 1) add the under 15 Age data to the Donner data from Statistical
 # Sleuth 3rd edition, 2) change age of Patrick Breen to 51 (Grayson, 1994, 
 # p 155). 3) Grayson (1990) argued Family Group Size, Age, and Gender control
-# survival and Rarek emphasized the poor survivorship of teamsters. This R code
-# will analyze the effects of all four variables. 4) Reviewed above books to
-# find death dates for surviving travelers.
+# survival and Rarek emphasized the poor survivorship of teamsters and servants.
+# This R code will analyze the effects of all four variables. 4) Reviewed above
+# books to find death dates for surviving travelers.
 
-# Used data imputation to fill in the 2 missing ages for the 2 Wolfingers
+# Used data imputation to fill in the missing ages for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
 # last name (not used here). But, also analyzed Grayson's (1990) Family Group
 # Size, which incorporates information from Stewart's (1960) roster on who was
@@ -74,12 +74,19 @@ Donner$Survival_Time <- as.numeric(Donner$Last_Date_Date - Donner$First_Snow_Dat
 # View the first few rows of the data frame to confirm the results
 head(Donner)
 
-# Impute missing Age values for the two Wolfingers, using median imputation
+# Impute missing Age values for Mr. Wolfinger, using median imputation
+# Rarek (2008, xi) provides Dora Wolfinger's age as 20. This section will
+# Assign Mr. Wolfinger an age of 23, which seems reasonable.
+# Compute the median age for each sex
+medians <- Donner %>%
+  group_by(Sex) %>%
+  summarize(median_age = median(Age, na.rm = TRUE))
+# Replace NAs in Age based on the median age of each sex
+Donner <- Donner %>%
+  left_join(medians, by = "Sex") %>%
+  mutate(Age = ifelse(is.na(Age), median_age, Age)) %>%
+  select(-median_age)
 Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
-# Both are assigned the median age of 18.
-# I had GPT-4 write a dplyr pipe to replace NA's by the medians for each sex,
-# but the median age for Females was 13, so I opted to using median imputation
-# producing an imputed median age of 18 for both Wolfingers.
 
 ### Optional: Delete 8 cases for individuals who died before the first Snowstorm
 # on 1846-10-28. This will reduce the number of cases to 87 - 8 = 79
@@ -361,7 +368,7 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
       title = "79 travelers, rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod3
 
-##### GAM analysis of the full data #####
+##### GAM analysis of the 79 Traveler #####
 ######## k-fold cross validation to find optimal k for the GAM
 
 # Set a seed for reproducibility
@@ -543,189 +550,6 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-####### Redo the Statistical Sleuth Analysis using cases with Age>=15 ##########
-
-## No real need to redo these analyses with the filtered data.
-
-# Note Statistical Sleuth (all 3 editions) used only Age 15 and older data and
-# dropped the 2 Wolfingers because Grayson (1990) didn't provide ther age. 
-# This analysis will analyze those age-pared data.
-# Only mod5 & mod6 will be plotted with ggplot
-
-# Create a new data frame with cases where Age is greater than or equal to 15
-Donner_15up <- Donner[Donner$Age >= 15, ]
-
-mod5 <- Glm(Status ~ Age + Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod6 <- Glm(Status ~ Age * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod7 <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod8 <- Glm(Status ~ rcs(Age,3) + Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod9 <- Glm(Status ~ rcs(Age,3),       data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod10 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-
-# Summary and ANOVA for mod5
-summary(mod5)
-mod5$coefficients
-anova(mod5)
-# Age (p=0.028), Sex (p = 0.022)
-
-# Summary and ANOVA for mod6
-summary(mod6)
-mod6$coefficients
-anova(mod6)
-# Age (p=0.06), Sex (p = 0.07), Age:Sex (p=0.07)
-
-# Summary and ANOVA for mod7
-summary(mod7)
-anova(mod7)
-# All p's > 0.15
-
-# Summary and ANOVA for mod8
-summary(mod8)
-anova(mod8)
-# Only sex important (p = 0.02)
-
-# Summary and ANOVA for mod9
-summary(mod9)
-anova(mod9)
-# No rcs(Age, 3) effect
-
-# Any effect of rcs (Family Group Size)
-summary(mod10)
-anova(mod10)
-# p = 0.005, so strong Family_Group_Size Effect
-
-# Check whether Age is important in a Wilks drop in deviance chi square test:
-# requires glm, not Harrell's Glm
-mod5g <- glm(Status ~ Age + Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-mod6g <- glm(Status ~ Age * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-anova(mod5g, mod6g, test = "Chi")
-# Good evidence for an interaction effect p =0.03
-
-# Should we spend the extra df on the restricted cubic spline for Age: NO!
-mod7g <- glm(Status ~ rcs(Age,3) * Sex, data = Donner_15up, family = binomial(), x = TRUE, y = TRUE)
-anova(mod6g, mod7g, test = "Chi")
-# p = 0.66, no extra explanatory value of rcs(Age,3)
-
-# Plot the data
-# Define new levels for the predictors
-new_age <- seq(min(Donner_15up$Age), max(Donner_15up$Age), length.out = 100)
-new_family_group_size <- seq(min(Donner_15up$Family_Group_Size), 
-                             max(Donner_15up$Family_Group_Size), length.out = 100)
-new_sex <- unique(Donner_15up$Sex)
-
-# Make predictions on the link scale (logit scale)
-link_pred5 <- Predict(mod5, Age = new_age, Sex = new_sex)
-link_pred6 <- Predict(mod6, Age = new_age, Sex = new_sex)
-
-# Transform predictions back to the original scale (probability scale)
-pred5<- data.frame(
-  Age = rep(new_age, times = length(new_sex)),
-  Sex = rep(new_sex, each = length(new_age)),
-  fit = plogis(link_pred5$yhat),
-  lower = plogis(link_pred5$lower),
-  upper = plogis(link_pred5$upper)
-)
-
-# Transform predictions back to the original scale (probability scale)
-pred6 <- data.frame(
-  Age = rep(new_age, times = length(new_sex)),
-  Sex = rep(new_sex, each = length(new_age)),
-  fit = plogis(link_pred6$yhat),
-  lower = plogis(link_pred6$lower),
-  upper = plogis(link_pred6$upper)
-)
-
-# Adjust y-values for jittered points
-Donner_15up$AdjustedStatus <- ifelse(Donner_15up$Status == 0, -0.03, 1.03)
-
-# Plot the results for the additive model: Not as informative as intxn model
-set.seed(8)
-ggplot(pred5, aes(x = Age, y = fit, color = Sex)) +
-  geom_line() +
-  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, 
-                                      shape = Sex, color = Sex),
-              width = 0.3, height = 0.03, size = 1.5) +
-  labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-       title = "Age + Sex model with 95% confidence intervals",
-       color = "Sex") +
-  theme_minimal() +
-  scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
-
-# Plot the results for the interaction model
-set.seed(8)
-ggplot(pred6, aes(x = Age, y = fit, color = Sex)) +
-  geom_line() +
-  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
-  geom_jitter(data = Donner_15up, aes(x = Age, y = AdjustedStatus, 
-                                      shape = Sex, color = Sex),
-              width = 0.3, height = 0.03, size = 1.5) +
-  labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-       title = "Age * Sex model with 95% confidence intervals",
-       color = "Sex") +
-  theme_minimal() +
-  scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
-
-# New code for a GAM 3-d plot. Sex has to be numeric.########################
-
-# Convert 'Sex' from character to numeric (0 for Male, 1 for Female)
-Donner$Sex_numeric <- ifelse(Donner$Sex == "Male", 0, 1)
-
-# Setting up cross-validation
-set.seed(123) # for reproducibility
-k_values <- c(2, 3, 4, 5, 6) # potential k values
-cv_errors <- data.frame()
-
-# k-fold CV
-
-for (k_value in k_values) {
-  mod_gam <- gam(Status ~ s(Age, k = k_value, by = Sex_numeric) + s(Family_Group_Size, k = k_value), 
-                 data = Donner, family = binomial())
-  
-  cv_result <- cv.glm(Donner, mod_gam, K = 10) # 10-fold CV
-  cv_errors <- rbind(cv_errors, data.frame(k = k_value, CVError = cv_result$delta[1]))
-}
-
-# Optimal k value
-best_k <- cv_errors[which.min(cv_errors$CVError),]$k
-best_k
-
-# Fitting GAM with best k
-mod_gam <- gam(Status ~ s(Age, k = best_k, by = Sex_numeric) + s(Family_Group_Size, k = best_k), 
-               data = Donner, family = binomial())
-summary(mod_gam)
-anova(mod_gam)
-
-# Generate predictions
-pred_grid <- expand.grid(Age = new_age, 
-                         Sex = new_sex, 
-                         Family_Group_Size = new_family_group_size)
-pred_grid$Sex_numeric <- ifelse(pred_grid$Sex == "Male", 0, 1)
-pred_gam <- predict(mod_gam, newdata = pred_grid, type = "response")
-
-# Combine predictions with grid for plotting
-pred_data <- cbind(pred_grid, fit = pred_gam)
-
-# 3D plot
-plot_3d_gam <- plot_ly(data = subset(pred_data, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
-                       type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
-  add_trace(data = subset(pred_data, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
-            type = "mesh3d", opacity = 0.6, name = "Female", showscale = FALSE) %>%
-  layout(scene = list(zaxis = list(range = c(0, 1)),
-                      xaxis = list(title = "Age"),
-                      yaxis = list(title = "Family Group Size"),
-                      zaxis = list(title = "Estimated Probability of Survival")),
-         title = paste0("GAM with k = ", best_k))
-plot_3d_gam
-
-# Overall conclusion on the 15-up analysis
-# With Age>= 15, there is a poor fit with the rcs(Age,3), but as with the
-# Sleuth3 analysis, the Age * Sex interaction is important, as determined by the
-# Wilks drop in deviance test (p=0.018), indicating the need for an interaction
-# term,
-# There is no justification for using a restricted cubic spline fit on the
-# age-pared Donner data.
-
 ##### Cox Proportional Hazards Model
 
 ##    Code & analysis from Harrell (2015) Chapter 20 (p 475-519)
@@ -759,8 +583,8 @@ km_fit <- survfit(Surv(Survival_Time, Death) ~ Sex, data = Donner)
 ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
            pval = TRUE, pval.coord = c(0.8, 0.25),
            legend = "right", legend.title = "Sex",
-           legend.labs = c("Female", "Male"),
-           risk.table.y.text = FALSE)
+           legend.labs = c("Female", "Male"), conf.int=TRUE,
+           risk.table.y.text = TRUE)
 
 # Hazard ratio plot
 # Convert model coefficients to hazard ratios
@@ -792,7 +616,7 @@ forestplot(
   upper = c(NA, df$upper),
   xlog = TRUE, # because hazard ratios are typically plotted on a log scale
   clip = c(0.5, 2), # you can adjust these values if necessary
-  xticks = c(0.5, 1, 2.5),
+  xticks = c(0.5, 1, 2),
   title = "Hazard Ratios (95% CI)"
 )
 
@@ -818,8 +642,8 @@ km_fit <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donn
 ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
            pval = TRUE, pval.coord = c(0.8, 0.25),
            legend = "right", legend.title = "Sex",
-           legend.labs = c("Family Member", "Teamster"),
-           risk.table.y.text = FALSE)
+           legend.labs = c("Family Member", "Teamster"), conf.int=TRUE,
+           risk.table.y.text = TRUE)
 
 # Hazard ratio plot
 # Convert model coefficients to hazard ratios
@@ -851,7 +675,7 @@ forestplot(
   upper = c(NA, df$upper),
   xlog = TRUE, # because hazard ratios are typically plotted on a log scale
   clip = c(0.5, 2), # you can adjust these values if necessary
-  xticks = c(0.5, 1, 2),
+  xticks = c(0.5, 1, 2.5),
   title = "Hazard Ratios (95% CI)"
 )
 
@@ -860,6 +684,87 @@ forestplot(
 Donner$SurvTime_Teamster <- with(Donner, Survival_Time * Teamster_Hired_Hands)
 cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands + SurvTime_Teamster, data = Donner)
 summary(cox_time_dep)
+
+
+# Print the summary of the model
+print(summary(cox_time_dep))
+
+# Check the proportional hazards assumption
+ph_test_2 <- cox.zph(cox_time_dep)
+
+# Print the results
+print(ph_test_2)
+
+# Plot the Schoenfeld residuals
+plot(ph_test_2)
+
+# 5. Visualize the results 
+# Kaplan-Meier survival curve
+km_fit <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
+ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
+           pval = TRUE, pval.coord = c(0.8, 0.25),
+           legend = "right", legend.title = "Sex",
+           legend.labs = c("Family Member", "Teamster"), conf.int=TRUE,
+           risk.table.y.text = TRUE)
+
+# Hazard ratio plot
+# Convert model coefficients to hazard ratios
+hr <- exp(coef(cox_time_dep))
+ci <- exp(confint(cox_time_dep))
+
+# Create a data frame for plotting
+df <- data.frame(
+  Variable = names(hr),
+  HR = hr,
+  lower = ci[, 1],
+  upper = ci[, 2]
+)
+
+# Organize data for forestplot
+labeltext <- list(
+  c("", df$Variable),
+  c("HR", as.character(round(df$HR, 2))),
+  c("Lower 95% CI", as.character(round(df$lower, 2))),
+  c("Upper 95% CI", as.character(round(df$upper, 2)))
+)
+
+# Plot using forestplot
+forestplot(
+  labeltext = labeltext,
+  graph.pos = 3,
+  mean = c(NA, df$HR),
+  lower = c(NA, df$lower),
+  upper = c(NA, df$upper),
+  xlog = TRUE, # because hazard ratios are typically plotted on a log scale
+  clip = c(0.5, 2), # you can adjust these values if necessary
+  xticks = c(0.5, 1, 2.5),
+  title = "Hazard Ratios (95% CI)"
+)
+
+### Forlorn Hope Fisher's exact test:
+# Create the data matrix
+# The matrix format is:
+#        Survived Died
+# Women      5     0
+# Men        2     8
+
+donner_matrix <- matrix(c(5, 2, 0, 8), nrow=2, byrow=TRUE)
+colnames(donner_matrix) <- c("Survived", "Died")
+rownames(donner_matrix) <- c("Women", "Men")
+print(donner_matrix)
+
+# Fisher's exact test
+test_result <- fisher.test(donner_matrix)
+
+# Print the results
+print(test_result)
+
+# Odds ratio
+print(paste("Odds Ratio:", test_result$estimate))
+
+# Confidence interval for the odds ratio
+print(paste("95% Confidence Interval:", round(test_result$conf.int[1], 3), "to", round(test_result$conf.int[2], 3)))
+
 
 # sink()   # Optional Turn off redirection
  
