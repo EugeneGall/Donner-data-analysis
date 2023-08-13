@@ -11,7 +11,7 @@
 10,9,Male,Survived,Breen,Simon,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
 11,30,Male,Died,Burger,Charles,1,1846-10-28,1846-12-25,0,1,Teamster for Donners (Rarick 2008 xi)
 12,28,Male,Died,Denton,John,1,1846-10-28,1847-02-27,0,1,"Teamster for Donners, Sheffield England"
-13,40,Male,Died,Dolan,Patrick,1,1846-10-28,1846-12-29,0,1,Irish Teamster for the Breens
+13,40,Male,Died,Dolan,Patrick,1,1846-10-28,1846-12-29,0,0,"Rarick p 53 says he was not a teamster or servant, about 35 or 40, Grayson says 40"
 14,14,Female,Survived,Donner,Elitha,16,1846-10-28,1847-04-29,0,0,
 15,45,Female,Died,Donner,Elizabeth,16,1846-10-28,1847-03-10,0,0,Wikipedia:diedafewdaysafterMarch7
 16,3,Female,Survived,Donner,Eliza,16,1846-10-28,1847-04-29,0,0,
@@ -35,7 +35,7 @@
 34,22,Female,Survived,Fosdick,Sarah,12,1846-10-28,1847-04-29,0,0,
 35,4,Male,Died,Foster,George,13,1846-10-28,1847-03-10,0,0,TragedyintheSierraNevada:Kesebergaccusedofkillinghim
 36,23,Female,Survived,Foster,Sarah,13,1846-10-28,1847-04-29,0,0,
-37,28,Male,Survived,Foster,William,13,1846-10-28,1847-04-29,0,0,
+37,28,Male,Survived,Foster,William,13,1846-10-28,1847-04-29,0,0,Rarick lists his age as 30
 38,15,Female,Survived,Graves,Eleanor,12,1846-10-28,1847-04-29,0,0,
 39,47,Female,Died,Graves,Elizabeth,12,1846-10-28,1847-03-08,0,0,
 40,1,Female,Died,Graves,Elizabeth,12,1846-10-28,1847-03-06,0,0,Wikipedia3babiesleftonMarch6inthecabin
@@ -47,11 +47,11 @@
 46,9,Female,Survived,Graves,Nancy,12,1846-10-28,1847-04-29,0,0,
 47,18,Male,Survived,Graves,William,12,1846-10-28,1847-04-29,0,0,
 48,25,Male,Died,Halloran,Luke,1,1846-10-28,1846-09-25,1,0,"Wikipedia died tuberculosis before snow;invalid traveling with Donner, Brown 9/25"
-49,60,Male,Died,Hardkoop,Mr,1,1846-10-28,1846-10-08,1,1,Died before the Sierras (Tragedy); Keseberg employee
+49,60,Male,Died,Hardkoop,Mr,1,1846-10-28,1846-10-08,1,1,Died before the Sierra Nevadas (Tragedy); Keseberg employee
 50,25,Male,Survived,Herron,William,1,1846-10-28,1847-04-29,1,1,"Rarek: Walter; Brown: in CA before entrapment, Age27; Teamster for Reed"
 51,14,Male,Survived,Hook,Solomon,16,1846-10-28,1847-04-29,0,0,
 52,12,Male,Died,Hook,William,16,1846-10-28,1847-02-27,0,0,
-53,20,Male,Survived,James,Noah,1,1846-10-28,1847-04-29,0,1,TeamsterforoneoftheDonners
+53,20,Male,Survived,James,Noah,1,1846-10-28,1847-04-29,0,1,Teamster for one of the Donners
 54,3,Female,Died,Keesberg,Ada,4,1846-10-28,1847-02-25,0,0,
 55,32,Male,Survived,Keesberg,Lewis,4,1846-10-28,1847-04-29,0,0,LewisKeesbergisthelastrescued
 56,1,Male,Died,Keesberg,LewisJr,4,1846-10-28,1847-01-24,0,0,
@@ -75,14 +75,14 @@
 74,8,Female,Survived,Reed,Patty,6,1846-10-28,1847-04-29,0,0,
 75,3,Male,Survived,Reed,Thomas,6,1846-10-28,1847-04-29,0,0,
 76,12,Female,Survived,Reed,Virginia,6,1846-10-28,1847-04-29,0,0,
-77,30,Male,Died,Reinhardt,Joseph,1,1846-10-28,1846-12-21,0,1,Keseberg companion or partner of Spitzer
-78,25,Male,Died,Shomaker,Samuel,1,1846-10-28,1846-12-21,0,1,TeamsterforoneoftheDonners
-79,25,Male,Died,Smith,James,1,1846-10-28,1846-12-21,0,1,Reedemployee
-80,25,Male,Died,Snyder,John,1,1846-10-28,1846-10-06,1,1,TeamsterforGraveskilledbeforemoutains
-81,30,Male,Died,Spitzer,Augustus,1,1846-10-28,1847-02-07,0,1,Kesebergcompanion
-82,35,Male,Died,Stanton,Charles,1,1846-10-28,1846-12-20,0,1,Teamsterortravelingunattached
+77,30,Male,Died,Reinhardt,Joseph,1,1846-10-28,1846-12-21,0,0,Bachelor Keseberg companion or partner of Spitzer
+78,25,Male,Died,Shomaker,Samuel,1,1846-10-28,1846-12-21,0,1,Teamster for one of the Donners
+79,25,Male,Died,Smith,James,1,1846-10-28,1846-12-21,0,1,Reed employee
+80,25,Male,Died,Snyder,John,1,1846-10-28,1846-10-06,1,1,Teamster for Graves killed before moutains
+81,30,Male,Died,Spitzer,Augustus,1,1846-10-28,1847-02-08,0,0,"Keseberg companion, mysterious role Rarek"
+82,35,Male,Died,Stanton,Charles,1,1846-10-28,1846-12-20,0,0,"Individual emigrant according to Rarek, not a teamster"
 83,23,Male,Survived,Trudeau,Jean Baptiste,1,1846-10-28,1847-04-29,0,1,Rarek: Age 16; Donner employee
-84,24,Male,Died,Williams,Baylis,2,1846-10-28,1846-12-15,0,1,Wikipediasays12-15;Reedemployee
+84,24,Male,Died,Williams,Baylis,2,1846-10-28,1846-12-15,0,1,Wikipedia says 12-15; Reed employee
 85,25,Female,Survived,Williams,Eliza,2,1846-10-28,1847-04-29,0,1,"Hired girl for Reed, sister of Baylis"
-86,,Male,Died,Wolfinger,Mr,2,1846-10-28,1846-10-13,1,0,Wikipedia
-87,20,Female,Survived,Wolfinger,Doris,2,1846-10-28,1847-04-29,0,0,"Age from Rarick (2008, xi); Survived with George Donners to testify in May 1847 Keseberg defamation trial (Stewart p 193, 287)"
+86,,Male,Died,Wolfinger,Mr,2,1846-10-28,1846-10-13,1,0,Stewart p 166: Murdered by Reinhardt & Spitzer who gave his gun to Keesberg
+87,20,Female,Survived,Wolfinger,Doris,2,1846-10-28,1847-04-29,0,0,"Age from Rarick (2008, xi); Survived with George Donners to testify in May 1847 Keseberg defamation trial (Stewart p 193, 287). Stewart: Doris walked with women leaving husband to cache supplies after oxen killed."
