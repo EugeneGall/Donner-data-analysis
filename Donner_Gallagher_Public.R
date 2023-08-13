@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/12/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/13/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -9,6 +9,9 @@
 #    Anthropological Research 46: 223-242.
 # Grayson, D. K. 1994. Differential Mortality and the Donner Party Disaster. 
 #    Evolutionary Anthropology 2: 151-159.
+# Grayson, D. K. (1997) “The timing of Donner Party deaths” Appendix 3 in
+#    Hardesty, D. L. (1997) The Archaeology of the Donner Party, Reno:
+#    University of Nevada Press.
 # Ramsey, F. L. and D. W. Schafer. 2013. The Statistical Sleuth: a Course in
 #    Methods of Data Analysis, 3rd Edition. Brooks/Cole Cengage Learning,
 #    Boston MA, 760 pp.
@@ -19,11 +22,11 @@
 # 
 # Approach: 1) add the under 15 Age data to the Donner data from Statistical
 # Sleuth 3rd edition, 2) change age of Patrick Breen to 51 (Grayson, 1994, 
-# p 155). 3) Grayson (1990) argued Family Group Size, Age, and Gender control
-# survival and Rarek emphasized the poor survivorship of teamsters and servants.
-# This R code will analyze the effects of all four variables. 4) Reviewed above
-# books to find death dates for surviving travelers and performed survival 
-# analysis
+# p 155). 3) Grayson (1990, 1997) argued Family Group Size, Age, and Gender
+# control survival and Rarek emphasized the poor survivorship of teamsters and
+# servants. This R code will analyze the effects of all four variables.
+# 4) Reviewed above books to find death dates for surviving travelers and
+# performed survival analyses confirming Grayson (1997) on death timing.
 
 # Used data imputation to fill in the missing age for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
@@ -110,7 +113,7 @@ options(datadist = "ddist")
 
 # Two methods will be coded for finding the appropriate number of knots:
 # 1) Brute force by manually plugging in different knot numbers in Glm
-# 2) An optimization routine
+# 2) An optimization routine based on AIC
 
 ##### First approach: brute force fitting to find minimal AICs.
 ##### Don't use for pared data, too time-consuming.
@@ -127,9 +130,9 @@ AIC(mod)
 # Sex and Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
 #   mod     AIC
-# 3 knots  92.89408 * Chosen because within 4 of lowest AIC
-# 4 knots  95.25095
-# 5 knots  92.62451 ** Not chosen because only 0.26957 less than 3 knot AIC
+# 3 knots  92.89261 * Chosen because within 4 of lowest AIC
+# 4 knots  91.25976
+# 5 knots  92.63563 ** Not chosen because only 0.26957 less than 3 knot AIC
 # 6 knots Apparently Singular Matrix, no estimation possible
 
 # Summary and ANOVA for mod1, Family Group Size alone
@@ -141,7 +144,7 @@ AIC(mod1)
 #   mod2    AIC
 # 3 knots 104.1358
 # 4 knots 101.3932
-# 5 knots 100.6453 * Chosen because within 4 AIC of minimum of 97.10704
+# 5 knots 100.6443 * Chosen because within 4 AIC of minimum of 97.10704
 # 6 knots 99.11325
 # 7 knots 97.10704
 # 8 knots 97.10704
@@ -691,13 +694,6 @@ summary(cox_time_dep)
 print(summary(cox_time_dep))
 
 # Check the proportional hazards assumption
-ph_test_2 <- cox.zph(cox_time_dep)
-
-# Print the results
-print(ph_test_2)
-
-# Plot the Schoenfeld residuals
-plot(ph_test_2)
 
 # 5. Visualize the results 
 # Kaplan-Meier survival curve
@@ -765,7 +761,6 @@ print(paste("Odds Ratio:", test_result$estimate))
 
 # Confidence interval for the odds ratio
 print(paste("95% Confidence Interval:", round(test_result$conf.int[1], 3), "to", round(test_result$conf.int[2], 3)))
-
 
 sink()   # Optional Turn off redirection
  
