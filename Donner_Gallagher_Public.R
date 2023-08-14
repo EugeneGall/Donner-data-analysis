@@ -42,6 +42,7 @@ sink("my_output.txt")   # Optional Redirect output to a file, make sure that
 library(boot) # for cv.glm function
 library(caret) # For GAM cross-validation
 library(forestplot)  # for the Cox PH plots
+library(gmodels)  # For Fisher tests of the Forlorn Hope data
 library(mgcv) # Wood's package for GAMs
 library(plotly) # for 3-d graphics
 library(rms)    # Harrell's regression modeling strategies pacakge
@@ -761,6 +762,10 @@ print(paste("Odds Ratio:", test_result$estimate))
 
 # Confidence interval for the odds ratio
 print(paste("95% Confidence Interval:", round(test_result$conf.int[1], 3), "to", round(test_result$conf.int[2], 3)))
+
+# Produces an SPSS-like table.
+CrossTable(donner_matrix,digits=3,fisher = TRUE, chisq = TRUE, expected = TRUE,
+           format = "SPSS")
 
 sink()   # Optional Turn off redirection
  
