@@ -1,88 +1,88 @@
-﻿ID,Age,Sex,Status,Last_Name,First_Name,Family_Group_Size,First_Snow,Last_Date,Delete,Teamster_Hired_Hands,Comments
-1,23.0,Male,Died,Antonio,,1,1846-10-28,1846-12-25,0,1,Cattleherder
-2,13.0,Male,Survived,Breen,Edward,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-3,1.0,Female,Survived,Breen,Isabella,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-4,5.0,Male,Survived,Breen,James,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-5,14.0,Male,Survived,Breen,John,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-6,40.0,Female,Survived,Breen,Mary,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-7,51.0,Male,Survived,Breen,Patrick,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-8,9.0,Male,Survived,Breen,PatrickJr,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-9,3.0,Male,Survived,Breen,Peter,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-10,7.0,Male,Survived,Breen,Simon,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
-11,30.0,Male,Died,Burger,Charles,1,1846-10-28,1846-12-29,0,1,Teamster for Donners (Rarick 2008 xi)
-12,28.0,Male,Died,Denton,John,1,1846-10-28,1847-02-24,0,1,"Teamster for Donners, Sheffield England"
-13,35.0,Male,Died,Dolan,Patrick,1,1846-10-28,1846-12-27,0,0,"Rarick p 53 says he was not a teamster or servant, about 35 or 40, Grayson says 40"
-14,14.0,Female,Survived,Donner,Elitha,16,1846-10-28,1847-04-29,0,0,
-15,3.0,Female,Survived,Donner,Eliza,16,1846-10-28,1847-04-29,0,0,
-16,40.0,Female,Died,Donner,Elizabeth,16,1846-10-28,1847-03-11,0,0,Wikipedia:diedafewdaysafterMarch7
-17,6.0,Female,Survived,Donner,Frances,16,1846-10-28,1847-04-29,0,0,
-18,62.0,Male,Died,Donner,George,16,1846-10-28,1847-03-26,0,0,"Wikipedia,diednearendofmonth"
-19,10.0,Male,Survived,Donner,GeorgeJr,16,1846-10-28,1847-04-29,0,0,
-20,4.0,Female,Survived,Donner,Georgia,16,1846-10-28,1847-04-29,0,0,
-21,6.0,Male,Died,Donner,Isaac,16,1846-10-28,1847-03-08,0,0,
-22,56.0,Male,Died,Donner,Jacob,16,1846-10-28,1846-12-15,0,0,
-23,11.0,Female,Survived,Donner,Leanna,16,1846-10-28,1847-04-29,0,0,
-24,4.0,Male,Died,Donner,Lewis,16,1846-10-28,1847-03-07,0,0,
-25,7.0,Female,Survived,Donner,Mary,16,1846-10-28,1847-04-29,0,0,
-26,1.0,Male,Died,Donner,Samuel,16,1846-10-28,1847-03-20,0,0,WikipediasometimeinMarch1847
-27,14.0,Male,Suvived,Donner,SolomonHook,16,1846-10-28,1847-04-29,0,0,Grayson 2018
-28,45.0,Female,Died,Donner,Tamzene,16,1846-10-28,1847-03-27,0,0,WikipediasometimeinMarch1847
-29,12.0,Male,Died,Donner,WilliamHook,16,1846-10-28,1847-02-28,0,0,
-30,25.0,Female,Died,Eddy,Eleanor,4,1846-10-28,1847-02-07,0,0,
-31,3.0,Male,Died,Eddy,James,4,1846-10-28,1847-03-8,0,0,
-32,1.0,Female,Died,Eddy,Margaret,4,1846-10-28,1847-02-04,0,0,
-33,28.0,Male,Survived,Eddy,William,4,1846-10-28,1847-04-29,0,0,CharacterStarof2009movie
-34,28.0,Male,Died,Elliot,Milford,1,1846-10-28,1847-02-09,0,1,Reed teamster
-35,23.0,Male,Died,Fosdick,Jay,12,1846-10-28,1847-01-05,0,0,
-36,21.0,Female,Survived,Fosdick,Sarah,12,1846-10-28,1847-04-29,0,0,
-37,2.0,Male,Died,Foster,George,13,1846-10-28,1847-03-08,0,0,TragedyintheSierraNevada:Kesebergaccusedofkillinghim
-38,19.0,Female,Survived,Foster,Sarah,13,1846-10-28,1847-04-29,0,0,
-39,31.0,Male,Survived,Foster,William,13,1846-10-28,1847-04-29,0,0,Rarick lists his age as 30
-40,14.0,Female,Survived,Graves,Eleanor,12,1846-10-28,1847-04-29,0,0,
-41,1.0,Female,Died,Graves,Elizabeth,12,1846-10-28,1847-04-01,0,0,Wikipedia3babiesleftonMarch6inthecabin
-42,46.0,Female,Died,Graves,ElizabethCooper,12,1846-10-28,1847-03-08,0,0,
-43,57.0,Male,Died,Graves,Franklin,12,1846-10-28,1846-12-25,0,0,
-44,5.0,Male,Died,Graves,FranklinJr,12,1846-10-28,1847-03-08,0,0,
-45,7.0,Male,Survived,Graves,Jonathon,12,1846-10-28,1847-04-29,0,0,
-46,12.0,Female,Survived,Graves,Lovina,12,1846-10-28,1847-04-29,0,0,
-47,20.0,Female,Survived,Graves,MaryAnn,12,1846-10-28,1847-04-29,0,0,
-48,8.0,Female,Survived,Graves,Nancy,12,1846-10-28,1847-04-29,0,0,
-49,17.0,Male,Survived,Graves,William,12,1846-10-28,1847-04-29,0,0,
-50,25.0,Male,Died,Halloran,Luke,1,1846-10-28,1846-09-25,1,0,"Wikipedia died tuberculosis before snow;invalid traveling with Donner, Brown 9/25"
-51,60.0,Male,Died,Hardkoop,Mr,1,1846-10-28,1846-10-08,1,1,Died before the Sierra Nevadas (Tragedy); Keseberg employee
-52,27.0,Male,Survived,Herron,William,1,1846-10-28,1847-04-29,1,1,"Rarek: Walter; Brown: in CA before entrapment, Age27; Teamster for Reed"
-53,16.0,Male,Survived,James,Noah,1,1846-10-28,1847-04-29,0,1,Teamster for one of the Donners
-54,2.0,Female,Died,Keesberg,Ada,4,1846-10-28,1847-02-25,0,0,
-55,32.0,Male,Survived,Keesberg,Louis,4,1846-10-28,1847-04-29,0,0,LewisKeesbergisthelastrescued
+﻿ID,Age,Sex,Status,Last_Name,First_Name,Family_Group_Size,First_Snow,Last_Date,Delete,Employee,Comments
+1,23,Male,Died,Antonio,,1,1846-10-28,1846-12-25,0,1,Cattleherder
+2,13,Male,Survived,Breen,Edward,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+3,1,Female,Survived,Breen,Isabella,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+4,5,Male,Survived,Breen,James,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+5,14,Male,Survived,Breen,John,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+6,40,Female,Survived,Breen,Mary,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+7,51,Male,Survived,Breen,Patrick,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+8,9,Male,Survived,Breen,PatrickJr,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+9,3,Male,Survived,Breen,Peter,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+10,7,Male,Survived,Breen,Simon,9,1846-10-28,1847-04-29,0,0,Familysurvivedcompletely
+11,30,Male,Died,Burger,Charles,1,1846-10-28,1846-12-29,0,1,Teamster for Donners (Rarick 2008 xi)
+12,28,Male,Died,Denton,John,1,1846-10-28,1847-02-24,0,1,"Teamster for Donners, Sheffield England"
+13,35,Male,Died,Dolan,Patrick,1,1846-10-28,1846-12-27,0,0,"Rarick p 53 says he was not a teamster or servant, but an ind.emigrant friend of the Breens, about 35, Grayson(2018)says 35"
+14,14,Female,Survived,Donner,Elitha,16,1846-10-28,1847-04-29,0,0,
+15,3,Female,Survived,Donner,Eliza,16,1846-10-28,1847-04-29,0,0,
+16,40,Female,Died,Donner,Elizabeth,16,1846-10-28,1847-03-11,0,0,Wikipedia:diedafewdaysafterMarch7
+17,6,Female,Survived,Donner,Frances,16,1846-10-28,1847-04-29,0,0,
+18,62,Male,Died,Donner,George,16,1846-10-28,1847-03-26,0,0,"Wikipedia,diednearendofmonth"
+19,10,Male,Survived,Donner,GeorgeJr,16,1846-10-28,1847-04-29,0,0,
+20,4,Female,Survived,Donner,Georgia,16,1846-10-28,1847-04-29,0,0,
+21,6,Male,Died,Donner,Isaac,16,1846-10-28,1847-03-08,0,0,
+22,56,Male,Died,Donner,Jacob,16,1846-10-28,1846-12-15,0,0,
+23,11,Female,Survived,Donner,Leanna,16,1846-10-28,1847-04-29,0,0,
+24,4,Male,Died,Donner,Lewis,16,1846-10-28,1847-03-07,0,0,
+25,7,Female,Survived,Donner,Mary,16,1846-10-28,1847-04-29,0,0,
+26,1,Male,Died,Donner,Samuel,16,1846-10-28,1847-03-20,0,0,WikipediasometimeinMarch1847
+27,14,Male,Suvived,Donner,SolomonHook,16,1846-10-28,1847-04-29,0,0,Grayson 2018
+28,45,Female,Died,Donner,Tamzene,16,1846-10-28,1847-03-27,0,0,WikipediasometimeinMarch1847
+29,12,Male,Died,Donner,WilliamHook,16,1846-10-28,1847-02-28,0,0,
+30,25,Female,Died,Eddy,Eleanor,4,1846-10-28,1847-02-07,0,0,
+31,3,Male,Died,Eddy,James,4,1846-10-28,1847-03-8,0,0,
+32,1,Female,Died,Eddy,Margaret,4,1846-10-28,1847-02-04,0,0,
+33,28,Male,Survived,Eddy,William,4,1846-10-28,1847-04-29,0,0,CharacterStarof2009movie
+34,28,Male,Died,Elliot,Milford,1,1846-10-28,1847-02-09,0,1,Reed teamster
+35,23,Male,Died,Fosdick,Jay,12,1846-10-28,1847-01-05,0,0,
+36,21,Female,Survived,Fosdick,Sarah,12,1846-10-28,1847-04-29,0,0,
+37,2,Male,Died,Foster,George,13,1846-10-28,1847-03-08,0,0,TragedyintheSierraNevada:Kesebergaccusedofkillinghim
+38,19,Female,Survived,Foster,Sarah,13,1846-10-28,1847-04-29,0,0,
+39,31,Male,Survived,Foster,William,13,1846-10-28,1847-04-29,0,0,Rarick lists his age as 30
+40,14,Female,Survived,Graves,Eleanor,12,1846-10-28,1847-04-29,0,0,
+41,1,Female,Died,Graves,Elizabeth,12,1846-10-28,1847-04-01,0,0,Wikipedia3babiesleftonMarch6inthecabin
+42,46,Female,Died,Graves,ElizabethCooper,12,1846-10-28,1847-03-08,0,0,
+43,57,Male,Died,Graves,Franklin,12,1846-10-28,1846-12-25,0,0,
+44,5,Male,Died,Graves,FranklinJr,12,1846-10-28,1847-03-08,0,0,
+45,7,Male,Survived,Graves,Jonathon,12,1846-10-28,1847-04-29,0,0,
+46,12,Female,Survived,Graves,Lovina,12,1846-10-28,1847-04-29,0,0,
+47,20,Female,Survived,Graves,MaryAnn,12,1846-10-28,1847-04-29,0,0,
+48,8,Female,Survived,Graves,Nancy,12,1846-10-28,1847-04-29,0,0,
+49,17,Male,Survived,Graves,William,12,1846-10-28,1847-04-29,0,0,
+50,25,Male,Died,Halloran,Luke,1,1846-10-28,1846-09-25,1,0,"Wikipedia died tuberculosis before snow;invalid traveling with Donner, Brown 9/25"
+51,60,Male,Died,Hardkoop,Mr,1,1846-10-28,1846-10-08,1,1,Died before the Sierra Nevadas (Tragedy); Keseberg employee
+52,27,Male,Survived,Herron,William,1,1846-10-28,1847-04-29,1,1,"Rarick: Walter; Brown: in CA before entrapment, Age27; Teamster for Reed"
+53,16,Male,Survived,James,Noah,1,1846-10-28,1847-04-29,0,1,Teamster for one of the Donners
+54,2,Female,Died,Keesberg,Ada,4,1846-10-28,1847-02-25,0,0,
+55,32,Male,Survived,Keesberg,Louis,4,1846-10-28,1847-04-29,0,0,LewisKeesbergisthelastrescued
 56,0.2,Male,Died,Keesberg,LouisJr,4,1846-10-28,1847-01-24,0,0,
-57,32.0,Female,Survived,Keesberg,Phillipine,4,1846-10-28,1847-04-29,0,0,
-58,23.0,Female,Survived,McCutcheon,Amanda,3,1846-10-28,1847-04-29,0,0,
-59,1.0,Female,Died,McCutcheon,Harriet,3,1846-10-28,1847-02-02,0,0,
-60,30.0,Male,Survived,McCutcheon,William,3,1846-10-28,1847-04-29,1,0,StaysatHutchins;BrowninCAbeforeentrapment
-61,16.0,Male,Died,Murphy,John,13,1846-10-28,1847-01-30,0,0,WikipediasaysLantron
-62,13.0,Male,Died,Murphy,Lemule,13,1846-10-28,1846-12-28,0,0,
-63,36.0,Female,Died,Murphy,Levinah,13,1846-10-28,1847-03-20,0,0,
-64,14.0,Female,Survived,Murphy,Mary,13,1846-10-28,1847-04-29,0,0,
-65,8.0,Male,Survived,Murphy,Simon,13,1846-10-28,1847-04-29,0,0,
-66,10.0,Male,Suvived,Murphy,William,13,1846-10-28,1847-04-29,0,0,
-67,1.0,Female,Died,Pike,Catherine,13,1846-10-28,1847-02-20,0,0,
-68,18.0,Female,Survived,Pike,Harriet,13,1846-10-28,1847-04-29,0,0,
-69,3.0,Female,Survived,Pike,Naomi,13,1846-10-28,1847-04-29,0,0,
-70,32.0,Male,Died,Pike,William,13,1846-10-28,1846-10-22,1,0,"Wikipediasaysshotbeforesnowstorm;Stewart10/20,Brown10/22"
-71,45.0,Male,Survived,Reed,James,6,1846-10-28,1847-04-29,1,0,ArrivedinCAbeforeentrapment
-72,5.0,Male,Survived,Reed,JamesJr,6,1846-10-28,1847-04-29,0,0,
-73,32.0,Female,Survived,Reed,Margaret,6,1846-10-28,1847-04-29,0,0,
-74,8.0,Female,Survived,Reed,Martha(Patty),6,1846-10-28,1847-04-29,0,0,
-75,3.0,Male,Survived,Reed,Thomas,6,1846-10-28,1847-04-29,0,0,
-76,13.0,Female,Survived,Reed,Virginia,6,1846-10-28,1847-04-29,0,0,
-77,30.0,Male,Died,Reinhardt,Joseph,1,1846-10-28,1846-12-15,0,0,Bachelor Keseberg companion or partner of Spitzer
-78,25.0,Male,Died,Shomaker,Samuel,1,1846-10-28,1846-12-15,0,1,Teamster for one of the Donners
-79,25.0,Male,Died,Smith,James,1,1846-10-28,1846-12-15,0,1,Reed employee
-80,25.0,Male,Died,Snyder,John,1,1846-10-28,1846-10-06,1,1,Teamster for Graves killed before moutains
-81,30.0,Male,Died,Spitzer,Augustus,1,1846-10-28,1847-02-08,0,0,"Keseberg companion, mysterious role Rarek"
-82,35.0,Male,Died,Stanton,Charles,1,1846-10-28,1846-12-21,0,0,"Individual emigrant according to Rarek, not a teamster"
-83,16.0,Male,Survived,Trudeau,Jean Baptiste,1,1846-10-28,1847-04-29,0,1,Rarek: Age 16; Donner employee
-84,25.0,Male,Died,Williams,Baylis,2,1846-10-28,1846-12-15,0,1,Wikipedia says 12-15; Reed employee
-85,31.0,Female,Survived,Williams,Eliza,2,1846-10-28,1847-04-29,0,1,"Hired girl for Reed, sister of Baylis"
+57,32,Female,Survived,Keesberg,Phillipine,4,1846-10-28,1847-04-29,0,0,
+58,23,Female,Survived,McCutcheon,Amanda,3,1846-10-28,1847-04-29,0,0,
+59,1,Female,Died,McCutcheon,Harriet,3,1846-10-28,1847-02-02,0,0,
+60,30,Male,Survived,McCutcheon,William,3,1846-10-28,1847-04-29,1,0,StaysatHutchins;BrowninCAbeforeentrapment
+61,16,Male,Died,Murphy,John,13,1846-10-28,1847-01-30,0,0,WikipediasaysLantron
+62,13,Male,Died,Murphy,Lemule,13,1846-10-28,1846-12-28,0,0,
+63,36,Female,Died,Murphy,Levinah,13,1846-10-28,1847-03-20,0,0,
+64,14,Female,Survived,Murphy,Mary,13,1846-10-28,1847-04-29,0,0,
+65,8,Male,Survived,Murphy,Simon,13,1846-10-28,1847-04-29,0,0,
+66,10,Male,Suvived,Murphy,William,13,1846-10-28,1847-04-29,0,0,
+67,1,Female,Died,Pike,Catherine,13,1846-10-28,1847-02-20,0,0,
+68,18,Female,Survived,Pike,Harriet,13,1846-10-28,1847-04-29,0,0,
+69,3,Female,Survived,Pike,Naomi,13,1846-10-28,1847-04-29,0,0,
+70,32,Male,Died,Pike,William,13,1846-10-28,1846-10-22,1,0,"Wikipediasaysshotbeforesnowstorm;Stewart10/20,Brown10/22"
+71,45,Male,Survived,Reed,James,6,1846-10-28,1847-04-29,1,0,ArrivedinCAbeforeentrapment
+72,5,Male,Survived,Reed,JamesJr,6,1846-10-28,1847-04-29,0,0,
+73,32,Female,Survived,Reed,Margaret,6,1846-10-28,1847-04-29,0,0,
+74,8,Female,Survived,Reed,Martha(Patty),6,1846-10-28,1847-04-29,0,0,
+75,3,Male,Survived,Reed,Thomas,6,1846-10-28,1847-04-29,0,0,
+76,13,Female,Survived,Reed,Virginia,6,1846-10-28,1847-04-29,0,0,
+77,30,Male,Died,Reinhardt,Joseph,1,1846-10-28,1846-12-15,0,0,"Bachelor Keseberg companion or partner of Spitzer, confessed to murdering Wolfinger"
+78,25,Male,Died,Shomaker,Samuel,1,1846-10-28,1846-12-15,0,1,Teamster for one of the Donners
+79,25,Male,Died,Smith,James,1,1846-10-28,1846-12-15,0,1,Reed employee
+80,25,Male,Died,Snyder,John,1,1846-10-28,1846-10-06,1,1,Teamster for Graves killed before moutains
+81,30,Male,Died,Spitzer,Augustus,1,1846-10-28,1847-02-08,0,0,"Keseberg companion, mysterious role Rarick"
+82,35,Male,Died,Stanton,Charles,1,1846-10-28,1846-12-21,0,0,"Individual emigrant according to Rarick, not a teamster"
+83,16,Male,Survived,Trudeau,Jean Baptiste,1,1846-10-28,1847-04-29,0,1,Rarick: Age 16; Donner employee
+84,25,Male,Died,Williams,Baylis,2,1846-10-28,1846-12-15,0,1,Wikipedia says 12-15; Reed employee
+85,31,Female,Survived,Williams,Eliza,2,1846-10-28,1847-04-29,0,1,"Hired girl for Reed, sister of Baylis"
 86,,Male,Died,Wolfinger,Mr,2,1846-10-28,1846-10-13,1,0,Stewart p 166: Murdered by Reinhardt & Spitzer who gave his gun to Keesberg
-87,29.0,Female,Survived,Wolfinger,Dorothea,2,1846-10-28,1847-04-29,0,0,"Age from Rarick (2008, xi); Survived with George Donners to testify in May 1847 Keseberg defamation trial (Stewart p 193, 287). Stewart: Doris walked with women leaving husband to cache supplies after oxen killed."
+87,29,Female,Survived,Wolfinger,Dorothea,2,1846-10-28,1847-04-29,0,0,"Age from Rarick (2008, xi); Survived with George Donners to testify in May 1847 Keseberg defamation trial (Stewart p 193, 287). Stewart: Doris walked with women leaving husband to cache supplies after oxen killed."
