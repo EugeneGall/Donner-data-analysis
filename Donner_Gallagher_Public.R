@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/13/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/17/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -12,21 +12,26 @@
 # Grayson, D. K. (1997) “The timing of Donner Party deaths” Appendix 3 in
 #    Hardesty, D. L. (1997) The Archaeology of the Donner Party, Reno:
 #    University of Nevada Press.
+# Grayson, D. K. (2018), Sex and Death on the Western Emigrant Trail: The
+#    Biology of Three American Tragedies. Salt Lake City: University of Utah
+#    Press.
 # Ramsey, F. L. and D. W. Schafer. 2013. The Statistical Sleuth: a Course in
 #    Methods of Data Analysis, 3rd Edition. Brooks/Cole Cengage Learning,
 #    Boston MA, 760 pp.
-# Rarek, E. 2008. Desperate Passage: The Donner Party’s Perilous Journey West.
+# Rarick, E. 2008. Desperate Passage: The Donner Party’s Perilous Journey West.
 #    Oxford University Press, Oxford. 304 pp.
 # Stewart, G. E. 1960. Ordeal by Hunger: the Ordeal of the Donner Party.
 #    Houghton Mifflin, Boston.392 pp.
 # 
 # Approach: 1) add the under 15 Age data to the Donner data from Statistical
 # Sleuth 3rd edition, 2) change age of Patrick Breen to 51 (Grayson, 1994, 
-# p 155). 3) Grayson (1990, 1997) argued Family Group Size, Age, and Gender
-# control survival and Rarek emphasized the poor survivorship of teamsters and
-# servants. This R code will analyze the effects of all four variables.
+# p 155). 3) Grayson (1990, 1997, 2018) argued Family Group Size, Age, and Sex
+# control survival and Rarick emphasized the poor survivorship of teamsters and
+# servants, combined here as Employees. This R code will analyze the effects of
+# all four variables.
 # 4) Reviewed above books to find death dates for surviving travelers and
 # performed survival analyses confirming Grayson (1997) on death timing.
+# Updated Demographic data in Donner.csv to conform to Grayson (2018)
 
 # Used data imputation to fill in the missing age for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
@@ -43,7 +48,11 @@ library(boot) # for cv.glm function
 library(caret) # For GAM cross-validation
 library(forestplot)  # for the Cox PH plots
 library(gmodels)  # For Fisher tests of the Forlorn Hope data
+library(grid) # for the Risk Table beneath the KM plots
+library(gridExtra) # for the Risk Table beneath the KM plots
+library(gtable) # for the Risk Table beneath the KM plots
 library(mgcv) # Wood's package for GAMs
+library(patchwork) # for the Risk Table below the KM plots.
 library(plotly) # for 3-d graphics
 library(rms)    # Harrell's regression modeling strategies pacakge
 library(survival)  # for Cox Proportional Hazards Modeling
@@ -55,14 +64,14 @@ library(tidyverse) # contains dplyr and ggplot2
 Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
-# (1990) Table 1 will be used in this code's analyses.
+# (1990, 2018) Table 1 will be used in this code's analyses.
 Donner$Family_Size <- as.integer(ave(Donner$Last_Name, Donner$Last_Name, FUN =length))
 
 str(Donner)
 
-# This produced slightly different Family Sizes than Grayson (1990 Table 1) in
-# that Grayson (1990) included family links using data from Stewart's (1960, 
-# p 363-364) Donner Party Roster.
+# This produced slightly different Family Sizes than Grayson (1990 Table 1, 
+# 2018 Table 2.1. Used Grayson (1990, 2018) Family Group Sizes with included
+# family links using data from Stewart's (1960, p 363-364) Donner Party Roster.
 
 # Convert Status to binary
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
@@ -80,7 +89,7 @@ Donner$Survival_Time <- as.numeric(Donner$Last_Date_Date - Donner$First_Snow_Dat
 head(Donner)
 
 # Impute missing Age values for Mr. Wolfinger, using median imputation
-# Rarek (2008, xi) provides Dora Wolfinger's age as 20. This section will
+# Rarick (2008, xi) provides Dora Wolfinger's age as 20. This section will
 # Assign Mr. Wolfinger an age of 23, which seems reasonable.
 # Compute the median age for each sex
 medians <- Donner %>%
@@ -106,7 +115,7 @@ str(Donner)
 ddist <- datadist(Donner)
 options(datadist = "ddist")
 
-# Fit the model with Age, Sex, and Grayson's (1990) Family_Group_Size
+# Fit the model with Age, Sex, and Grayson's (1990, 2018) Family_Group_Size
 # In deciding on knot size, I used the rule that the minimum knot size should
 # be chosen (rcs has a min of 3) unless there is another larger number of knots
 # with an AIC which is more than than 4 AIC units lower (Burnham & Anderson
@@ -120,9 +129,10 @@ options(datadist = "ddist")
 ##### Don't use for pared data, too time-consuming.
 #     3 is the minimum knot size permitted with Harrell's rcs function
 mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod1 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod1 <- Glm(Status ~ rcs(Family_Group_Size,4), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# The 2 3-d plots aren't used in the manuscript: with interactions, too curvy to interpret.
 mod2 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod3 <- Glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod3 <- Glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 
 # Summary and ANOVA for mod
 summary(mod)
@@ -131,38 +141,45 @@ AIC(mod)
 # Sex and Age with restricted cubic spline 3-knot curve and interaction all with
 # p < 0.05
 #   mod     AIC
-# 3 knots  92.89261 * Chosen because within 4 of lowest AIC
-# 4 knots  91.25976
-# 5 knots  92.63563 ** Not chosen because only 0.26957 less than 3 knot AIC
+# 3 knots  95.40752 * Chosen because within 4 of lowest AIC
+# 4 knots  92.3582 ** Not chosen because only 3.04932 less than 3 knot solution
+# 5 knots  92.88625 
 # 6 knots Apparently Singular Matrix, no estimation possible
 
 # Summary and ANOVA for mod1, Family Group Size alone
 summary(mod1)
 anova(mod1)
 AIC(mod1)
+
+#   mod1    AIC
+# 3 knots 103.1001
+# 4 knots 100.9621  * This is the optimal knot size using the <4 AIC rule
+# 5 knots 100.4135  
+# 6 knots  98.86288
+# 7 knots  98.86288
 # AIC = 106.51
 # Very strong nonlinear effect of group size
+
+# Summary and ANOVA for mod2, Age + Sex + rcs(Family_Group_Size,knots) 
 #   mod2    AIC
-# 3 knots 104.1358
-# 4 knots 101.3932
-# 5 knots 100.6443 * Chosen because within 4 AIC of minimum of 97.10704
-# 6 knots 99.11325
-# 7 knots 97.10704
-# 8 knots 97.10704
-# 9 knots 97.10704
-# Summary and ANOVA for mod2, an additive model, Age, Sex and 
-# rcs(Family_Group Size)
+# 3 knots 103.1001
+# 4 knots 100.9621
+# 5 knots 100.4135 * Chosen because within 3.559712 AIC of minimum of 96.85368
+# 6 knots 98.86288 
+# 7 knots 96.85638
+# 8 knots 96.85638
+# 9 knots 96.85638
 summary(mod2)
 anova(mod2)
 AIC(mod2)
 #   mod2    AIC
-# 3 knots 101.5496
-# 4 knots 100.6285
-# 5 knots  97.38427 * Chosen because within 4 AIC of minimum
-# 6 knots  94.06806
-# 7 knots  94.03242
-# 8 knots  94.03242
-# 9 knots  94.03242
+# 3 knots  99.96199
+# 4 knots  99.49113
+# 5 knots  96.27163 * Chosen because within 4 AIC of minimum
+# 6 knots  92.81669
+# 7 knots  92.63715
+# 8 knots  92.63715
+# 9 knots  92.63715
 
 # Strong effect of Sex, but not Age (p=0.24) or Family Group Size (p= 0.29)
 
@@ -171,43 +188,56 @@ AIC(mod2)
 summary(mod3)
 anova(mod3)
 AIC(mod3)
-#   mod3    AIC
-# 3 knots 94.07029
-# 4 knots 78.58391 *
-# 5 knots 79.2632
-# 6 knots Singular Matrix no estimation possible
+mod3
+# Age     FGS        AIC
+# 3 knots 4 knots    83.82654
+# 3 knots 5 knots    78.36897
+# 3 knots 6 knots    75.78856
+# 4 knots 5 knots    75.78856
+# 5 knots 4 knots    76.51016
+# 5 knots 5 knots    70.89114  
+# 5 knots 6 knots    64.75378 
+# 5 knots 7 knots    singular
+# 6 knots 4 knots    74.51321
+# 6 knots 5 knots    63.82448 
+# 6 knots 6 knots    56.32838 * Or, Error Singular matrix
 ##### End of brute force approach
 
 ##### Second approach: GPT4 Streamlined the above code block with functions:
 
-# Function to fit models with one rcs term
+# Function to fit models with one rcs term, updated on 8/17/23 by GPT-4
 fit_best_rcs <- function(formula_template, data, knot_range) {
-  best_aic <- Inf
-  best_model <- NULL
-  best_knots <- knot_range[1]
-  results <- list()
   
+  aic_values <- numeric(length(knot_range))
+  models <- vector("list", length(knot_range))
+  
+  # Calculate AIC for each knot size
   for (k in knot_range) {
     formula <- as.formula(gsub("KNOTS", k, formula_template))
     model <- glm(formula, data = data, family = binomial())
-    current_aic <- AIC(model)
-    results[[as.character(k)]] <- current_aic
-    
-    if (current_aic < best_aic && (best_aic - current_aic > 4 || k < best_knots)) {
-      best_aic <- current_aic
-      best_model <- model
-      best_knots <- k
+    aic_values[k - knot_range[1] + 1] <- AIC(model)
+    models[[k - knot_range[1] + 1]] <- model
+  }
+  
+  min_aic <- min(aic_values)
+  best_knots <- knot_range[which.min(aic_values)]
+  
+  # Iterate through the aic_values and apply the rules
+  for (i in seq_along(aic_values)) {
+    if (aic_values[i] - min_aic <= 4 && knot_range[i] < best_knots) {
+      best_knots <- knot_range[i]
     }
   }
   
-  return(list(model = best_model, knots = best_knots, results = results))
+  return(list(model = models[[which(knot_range == best_knots)]], knots = best_knots, results = setNames(aic_values, knot_range)))
 }
 
-# Function to fit model with two rcs terms
+# Function to fit model with two rcs terms, updated by GPT-4 on 8/17/23
 fit_best_double_rcs <- function(formula, data, knot_range, family = binomial()) {
   best_aic <- Inf
   best_k_age <- max(knot_range)
   best_k_fgs <- max(knot_range)
+  aic_matrix <- matrix(NA, nrow = length(knot_range), ncol = length(knot_range), dimnames = list(knot_range, knot_range))
   
   for (k_age in knot_range) {
     for (k_fgs in knot_range) {
@@ -218,12 +248,30 @@ fit_best_double_rcs <- function(formula, data, knot_range, family = binomial()) 
         current_model <- glm(current_formula, data = data, family = family)
         current_aic <- AIC(current_model)
         
+        aic_matrix[as.character(k_age), as.character(k_fgs)] <- current_aic
+        
+        # Update if current AIC is smaller than the best so far
         if (current_aic < best_aic) {
           best_aic <- current_aic
           best_k_age <- k_age
           best_k_fgs <- k_fgs
         }
       }, error = function(e) {}) # Handle potential errors
+    }
+  }
+  
+  min_aic <- best_aic  # best AIC among all combinations
+  best_sum_knots <- best_k_age + best_k_fgs  # initialize with the sum of best knots
+  
+  # Find combinations with the smallest sum of knots but AIC within 4 of min_aic
+  for (k_age in knot_range) {
+    for (k_fgs in knot_range) {
+      current_sum_knots <- k_age + k_fgs
+      if ((aic_matrix[as.character(k_age), as.character(k_fgs)] - min_aic <= 4) && current_sum_knots < best_sum_knots) {
+        best_k_age <- k_age
+        best_k_fgs <- k_fgs
+        best_sum_knots <- current_sum_knots
+      }
     }
   }
   
@@ -251,8 +299,8 @@ print_details <- function(model_result, model_name) {
 }
 
 # Fitting models
-# Note that 3 is the minimum knot size for rcs, dozens of warnings with knots>5
-knot_range <- 3:5
+# Note that 3 is the minimum knot size for rcs, dozens of warnings with knots>6
+knot_range <- 3:6
 mod_results <- fit_best_rcs("Status ~ rcs(Age, KNOTS) * Sex", Donner, knot_range)
 mod1_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS)", Donner, knot_range)
 mod2_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS) * Sex", Donner, knot_range)
@@ -264,7 +312,7 @@ print_details(mod1_results, "mod1")
 print_details(mod2_results, "mod2")
 print_details(mod3_results, "mod3")
 
-###### End of GPT-4 AIC optimization code ######
+###### End of GPT-4 AIC rcs optimization code ######
 
 # Generate 4 ggplot2 graphics
 # Define new levels for the predictors
@@ -319,21 +367,20 @@ pred3 <-  data.frame(
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
 
-# Plot the results for the rcs(Age,3) * Sex model
-set.seed(8) 
+# Plot the results for Figure 1 rcs(Age,3) * Sex model
+set.seed(13) 
 ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus,
             shape = Sex, color = Sex), width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-#       title = "rcs(Age, 3) * Sex with 95% confidence intervals",
-  title = "79 travelers, rcs(Age, 3) * Sex with 95% confidence intervals",
+  title = "Fig. 1. rcs(Age, 3) * Sex with 95% confidence intervals",
         color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-# Plot the results for the rcs(Family_Group_Size,5) model
+# Plot the results for the rcs(Family_Group_Size,4) model
 ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
@@ -341,8 +388,7 @@ ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
               shape = Sex, color = Sex), width = 0.3, height = 0.03,
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
-#      title = "rcs(Family Group Size, 5) with 95% confidence intervals",
-title = "79 travelers, rcs(Family Group Size, 5) with 95% confidence intervals",
+  title = "Fig. 3. rcs(Family Group Size, 4) with 95% confidence intervals",
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
@@ -356,11 +402,12 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-#         title = "Age + Sex + rcs(Family_Group_Size,5)")
-       title = "79 travelers, Age + Sex + rcs(Family_Group_Size,5)")
+#         title = "Age + Sex + rcs(Family_Group_Size,6)")
+       title = "Age + Sex + rcs(Family_Group_Size,6)")
 plot_3d_mod2
 
 # Plot the results for the rcs(Age,3) * Sex * rcs(Family_Group-Size,5) 3-d model
+# Graphic not used in the manuscript (too curvy)
 plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
                         type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
   add_trace(data = subset(pred3, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
@@ -369,12 +416,11 @@ plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-#          title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
-      title = "79 travelers, rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
+                      title = "rcs(Age,6) * Sex + rcs(Family_Group_Size,6)")
 plot_3d_mod3
 
-##### GAM analysis of the 79 Traveler #####
-######## k-fold cross validation to find optimal k for the GAM
+##### GAM analysis of the 79 Travelers #####
+######## k-fold cross validation to find optimal k for the GAMs
 
 # Set a seed for reproducibility
 set.seed(123)
@@ -446,25 +492,26 @@ pred_data$fit <- plogis(predictions$fit)
 pred_data$lower <- plogis(predictions$fit - 1.96 * predictions$se.fit)
 pred_data$upper <- plogis(predictions$fit + 1.96 * predictions$se.fit)
 
-# plot the GAM analysis (Figure 3 in manuscript)
+# plot the GAM analysis for Sex (Figure 2 in manuscript)
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
-set.seed(8)
+
+# Plot Fig. 2, GAM analysis of Sex
+set.seed(3)
 ggplot(pred_data, aes(x = Age, y = fit, color = Sex, shape = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus),
               width = 0.3, height = 0.03, size = 1.5) +
   labs(x = "Age (Years)", y = "Estimated Probability of Survival",
-#       title = "GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
- title = "79 travelers, GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
+   title = "Fig. 2. GAM (k=2) with Age smooths by Sex with 95% confidence intervals") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2)) +
   scale_color_manual(values = c("Male" = "blue", "Female" = "pink2"), name = "Sex") +
   scale_shape_manual(values = c("Male" = 17, "Female" = 16), name = "Sex") + 
   guides(color = guide_legend(override.aes = list(shape = c(17, 16))))
 
-### Family Group Size, code from GPT-4 #########################################
+### GAMs for Family Group Size, code from GPT-4 ################################
 
 # Define the k-fold cross-validation manually for GAM:
 set.seed(123) # for reproducibility
@@ -549,22 +596,16 @@ ggplot(pred_data, aes(x = Family_Group_Size, y = fit)) +
                                  shape = Sex, color = Sex), width = 0.3, height = 0.03,
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
-#      title = paste0("GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
- title = paste0("79 travelers, GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
+# title = paste0("GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
+ title = paste0("Fig. 4. GAM (k=", best_k, ") with Family Group Size with 95% confidence intervals"),
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
-##### Cox Proportional Hazards Model
-
-##    Code & analysis from Harrell (2015) Chapter 20 (p 475-519)
-#    Couldn't get Harrell code to work
+##### Cox Proportional Hazards Model for Sex
 
 Donner$Death <- abs(Donner$Status-1)
-# Code from GPT-4
-# 1. Load necessary packages
-# install.packages("survival")
-# install.packages("survminer")
+# Code initially from GPT-4
 
 # Assuming the data frame is already loaded as `Donner`
 # 2. Fit the Cox proportional hazards model
@@ -583,15 +624,49 @@ print(ph_test)
 plot(ph_test)
 
 # 3. Visualize the results 
-# Kaplan-Meier survival curve
-km_fit <- survfit(Surv(Survival_Time, Death) ~ Sex, data = Donner)
-ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
-           pval = TRUE, pval.coord = c(0.8, 0.25),
-           legend = "right", legend.title = "Sex",
-           legend.labs = c("Female", "Male"), conf.int=TRUE,
-           risk.table.y.text = TRUE)
 
-# Hazard ratio plot
+# Fit Kaplan-Meier survival curves for Sex
+km_fit <- survfit(Surv(Survival_Time, Death) ~ Sex, data = Donner)
+
+# Define the days of arrival of the relief parties
+relief_days <- c(83, 124, 136, 171)
+colors <- c("red", "blue", "magenta", "purple")
+linetypes <- c("dashed", "dotted", "dotdash", "longdash")
+labels <- c("1st", "2nd", "3rd", "4th")
+
+# Plot the KM curve & Risk Table for Sex
+
+# Generate KM plot without the risk table
+p1 <- ggsurvplot(km_fit, data = Donner, risk.table = FALSE,
+                 pval = TRUE, pval.coord = c(0.8, 0.25),
+                 legend = "right", legend.title = "Sex",
+                 title = "Fig. 5. Kaplan-Meier Survivorship by Sex",
+                 legend.labs = c("Female", "Male"), conf.int = TRUE,
+                 break.x.by = 20)
+
+# Add the relief party vertical lines and annotations
+for (i in 1:4) {
+  p1$plot <- p1$plot + 
+    annotate("segment", x = relief_days[i], xend = relief_days[i], 
+             y = 0, yend = 1, colour = colors[i], linetype = linetypes[i]) +
+    annotate("text", x = relief_days[i], y = 0.2, 
+             label = labels[i], angle = 90, vjust = 0, color = colors[i])
+}
+
+# Generate risk table separately
+p2 <- ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
+                 pval = FALSE, legend = "none",
+                 break.x.by = 20)
+
+# Use patchwork to combine the two plots
+
+# Use patchwork to combine the two plots with specified heights
+combined_plot <- p1$plot / p2$table + plot_layout(heights = c(5, 1))
+
+# Print the combined plot
+combined_plot
+
+#### Hazard ratio plot
 # Convert model coefficients to hazard ratios
 hr <- exp(coef(cox_model))
 ci <- exp(confint(cox_model))
@@ -622,12 +697,13 @@ forestplot(
   xlog = TRUE, # because hazard ratios are typically plotted on a log scale
   clip = c(0.5, 2), # you can adjust these values if necessary
   xticks = c(0.5, 1, 2),
-  title = "Hazard Ratios (95% CI)"
+  title = "Hazard Ratios by Sex (95% CI)"
 )
 
-# 4. Teamster/Servant analyses
+# 4. Employee (Teamster & 2 Servant) Survival Analysis
+# 4.1 Cox PH model
 
-cox_model_2 <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
+cox_model_2 <- coxph(Surv(Survival_Time, Death) ~ Employee, data = Donner)
 
 # Print the summary of the model
 print(summary(cox_model_2))
@@ -637,20 +713,54 @@ ph_test_2 <- cox.zph(cox_model_2)
 
 # Print the results
 print(ph_test_2)
+# Strong evidence that the constant proportional hazard assumption is violated.
+#   p = 0.031
 
 # Plot the Schoenfeld residuals
 plot(ph_test_2)
 
-# 5. Visualize the results 
-# Kaplan-Meier survival curve
-km_fit <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
-ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
-           pval = TRUE, pval.coord = c(0.8, 0.25),
-           legend = "right", legend.title = "Sex",
-           legend.labs = c("Family Member", "Teamster"), conf.int=TRUE,
-           risk.table.y.text = TRUE)
+# 4.2 Kaplan-Meier survival curve for Employment
 
-# Hazard ratio plot
+km_fit <- survfit(Surv(Survival_Time, Death) ~ Employee, data = Donner)
+
+# Define the days of arrival of the relief parties
+relief_days <- c(83, 124, 136, 171)
+colors <- c("red", "blue", "magenta", "purple")
+linetypes <- c("dashed", "dotted", "dotdash", "longdash")
+labels <- c("1st", "2nd", "3rd", "4th")
+
+# Generate KM plot without the risk table
+p1 <- ggsurvplot(km_fit, data = Donner, risk.table = FALSE,
+                 pval = TRUE, pval.coord = c(0.8, 0.25),
+                 legend = "right", legend.title = "Sex",
+                 title = "Fig. 6. Kaplan-Meier Survivorship by Employment",
+                 legend.labs = c("Family Member", "Employee"), conf.int = TRUE,
+                 break.x.by = 20)
+
+# Add the relief party vertical lines and annotations
+for (i in 1:4) {
+  p1$plot <- p1$plot + 
+    annotate("segment", x = relief_days[i], xend = relief_days[i], 
+             y = 0, yend = 1, colour = colors[i], linetype = linetypes[i]) +
+    annotate("text", x = relief_days[i], y = 0.05, 
+             label = labels[i], angle = 90, vjust = 0, color = colors[i])
+}
+
+# Generate risk table separately
+p2 <- ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
+                 pval = FALSE, legend = "none",
+                 break.x.by = 20)
+
+# Use patchwork to combine the two plots
+
+# Use patchwork to combine the two plots with specified heights
+combined_plot <- p1$plot / p2$table + plot_layout(heights = c(5, 1))
+
+# Print the combined plot
+combined_plot
+
+# 4.3 Calculate and plot the hazard ratio for Employment
+
 # Convert model coefficients to hazard ratios
 hr <- exp(coef(cox_model_2))
 ci <- exp(confint(cox_model_2))
@@ -686,8 +796,8 @@ forestplot(
 
 # The proportional hazards assumption is clearly violated, so GPT-4 suggested
 # an alternative:
-Donner$SurvTime_Teamster <- with(Donner, Survival_Time * Teamster_Hired_Hands)
-cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands + SurvTime_Teamster, data = Donner)
+Donner$SurvTime_Employee <- with(Donner, Survival_Time * Employee)
+cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Employee + SurvTime_Employee, data = Donner)
 summary(cox_time_dep)
 
 
@@ -695,51 +805,20 @@ summary(cox_time_dep)
 print(summary(cox_time_dep))
 
 # Check the proportional hazards assumption
+ph_test_3 <- cox.zph(cox_time_dep)
 
-# 5. Visualize the results 
-# Kaplan-Meier survival curve
-km_fit <- survfit(Surv(Survival_Time, Death) ~ Teamster_Hired_Hands, data = Donner)
-ggsurvplot(km_fit, data = Donner, risk.table = TRUE,
-           pval = TRUE, pval.coord = c(0.8, 0.25),
-           legend = "right", legend.title = "Sex",
-           legend.labs = c("Family Member", "Teamster"), conf.int=TRUE,
-           risk.table.y.text = TRUE)
+# Print the results
+print(ph_test_3)
 
-# Hazard ratio plot
-# Convert model coefficients to hazard ratios
-hr <- exp(coef(cox_time_dep))
-ci <- exp(confint(cox_time_dep))
+# Strong evidence that the constant proportional hazard assumption is violated.
+#   p = 0.031
 
-# Create a data frame for plotting
-df <- data.frame(
-  Variable = names(hr),
-  HR = hr,
-  lower = ci[, 1],
-  upper = ci[, 2]
-)
+# Plot the Schoenfeld residuals
+plot(ph_test_3)
+# Fairly constant
 
-# Organize data for forestplot
-labeltext <- list(
-  c("", df$Variable),
-  c("HR", as.character(round(df$HR, 2))),
-  c("Lower 95% CI", as.character(round(df$lower, 2))),
-  c("Upper 95% CI", as.character(round(df$upper, 2)))
-)
 
-# Plot using forestplot
-forestplot(
-  labeltext = labeltext,
-  graph.pos = 3,
-  mean = c(NA, df$HR),
-  lower = c(NA, df$lower),
-  upper = c(NA, df$upper),
-  xlog = TRUE, # because hazard ratios are typically plotted on a log scale
-  clip = c(0.5, 2), # you can adjust these values if necessary
-  xticks = c(0.5, 1, 2.5),
-  title = "Hazard Ratios (95% CI)"
-)
-
-### Forlorn Hope Fisher's exact test:
+### 6. Forlorn Hope Fisher's exact test:
 # Create the data matrix
 # The matrix format is:
 #        Survived Died
@@ -768,4 +847,3 @@ CrossTable(donner_matrix,digits=3,fisher = TRUE, chisq = TRUE, expected = TRUE,
            format = "SPSS")
 
 sink()   # Optional Turn off redirection
- 
