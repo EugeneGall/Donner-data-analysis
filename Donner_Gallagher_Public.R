@@ -700,7 +700,7 @@ forestplot(
   title = "Hazard Ratios by Sex (95% CI)"
 )
 
-# 4. Employee (Teamster & 2 Servant) Survival Analysis
+# 4. Employee (Teamsters & 2 Servants) Survival Analysis
 # 4.1 Cox PH model
 
 cox_model_2 <- coxph(Surv(Survival_Time, Death) ~ Employee, data = Donner)
@@ -713,8 +713,8 @@ ph_test_2 <- cox.zph(cox_model_2)
 
 # Print the results
 print(ph_test_2)
-# Strong evidence that the constant proportional hazard assumption is violated.
-#   p = 0.031
+# Some evidence that the constant proportional hazard assumption is violated.
+# p = 0.041 for Employee and Global chisq 4.17 with 1 df
 
 # Plot the Schoenfeld residuals
 plot(ph_test_2)
@@ -759,6 +759,23 @@ combined_plot <- p1$plot / p2$table + plot_layout(heights = c(5, 1))
 # Print the combined plot
 combined_plot
 
+# GPT-4 suggested that I try stratified KM plots to show the change in
+# Proportional Hazard ratio with time. Here is the codefrom GPT-4
+
+# Split the Survival_Time into intervals
+
+Donner$TimeGroup <- cut(Donner$Survival_Time, breaks = c(0, 50, 100, max(Donner$Survival_Time)), 
+                        labels = c("Early", "Middle", "Late"), include.lowest = TRUE)
+
+# KM fit using Employee and stratified by TimeGroup
+km_fit_time <- survfit(Surv(Survival_Time, Death) ~ Employee + strata(TimeGroup), data = Donner)
+
+# Plot
+ggsurvplot(km_fit_time, data = Donner, risk.table = FALSE, 
+           legend = "right", legend.title = "Sex",
+           title = "Fig. 7. Kaplan-Meir Employee Survivorship Stratified by Time Intervals", conf.int = TRUE,
+           break.x.by = 20)
+
 # 4.3 Calculate and plot the hazard ratio for Employment
 
 # Convert model coefficients to hazard ratios
@@ -800,7 +817,6 @@ Donner$SurvTime_Employee <- with(Donner, Survival_Time * Employee)
 cox_time_dep <- coxph(Surv(Survival_Time, Death) ~ Employee + SurvTime_Employee, data = Donner)
 summary(cox_time_dep)
 
-
 # Print the summary of the model
 print(summary(cox_time_dep))
 
@@ -809,14 +825,12 @@ ph_test_3 <- cox.zph(cox_time_dep)
 
 # Print the results
 print(ph_test_3)
-
-# Strong evidence that the constant proportional hazard assumption is violated.
-#   p = 0.031
+# Evidence for the violation of the constant hazard ratio assumption for Employee
+# But not for Global
 
 # Plot the Schoenfeld residuals
 plot(ph_test_3)
-# Fairly constant
-
+# Fairly level distribution for Betas for SurvTime_Employees
 
 ### 6. Forlorn Hope Fisher's exact test:
 # Create the data matrix
