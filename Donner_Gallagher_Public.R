@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/17/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/19/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -32,10 +32,12 @@
 # 4) Reviewed above books to find death dates for surviving travelers and
 # performed survival analyses confirming Grayson (1997) on death timing.
 # Updated Demographic data in Donner.csv to conform to Grayson (2018)
+# 5) Renumbered the models and ran both glm and Glm on each model, the latter
+#    to get the data on rcs effect sizes and to plot the data Harrell-style.
 
 # Used data imputation to fill in the missing age for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
-# last name (not used here). But, also analyzed Grayson's (1990) Family Group
+# last name (not used in manuscript) but used Grayson's (1990) Family Group
 # Size, which incorporates information from Stewart's (1960) roster on who was
 # traveling with each Family Travel Group.
 
@@ -77,7 +79,7 @@ str(Donner)
 Donner$Status <- ifelse(Donner$Status == "Survived", 1, 0)
 
 # Calculate the Survival_Time which is Death Date or last rescue (Lewis 
-# Keseberg) - First_Snow, October 28 1846.
+# Keseberg 4/29/1847) - First_Snow, October 28 1846.
 # Convert the character strings to Date objects
 Donner$First_Snow_Date <- as.Date(Donner$First_Snow, format="%Y-%m-%d")
 Donner$Last_Date_Date <- as.Date(Donner$Last_Date, format="%Y-%m-%d")
@@ -102,7 +104,7 @@ Donner <- Donner %>%
   select(-median_age)
 Donner$Age[is.na(Donner$Age)] <- median(Donner$Age, na.rm = TRUE)
 
-### Optional: Delete 8 cases for individuals who died before the first Snowstorm
+### Delete 8 cases for individuals who died before the first Snowstorm
 # on 1846-10-28. This will reduce the number of cases to 87 - 8 = 79
 
 Donner <- Donner %>%
@@ -126,82 +128,64 @@ options(datadist = "ddist")
 # 2) An optimization routine based on AIC
 
 ##### First approach: brute force fitting to find minimal AICs.
-##### Don't use for pared data, too time-consuming.
-#     3 is the minimum knot size permitted with Harrell's rcs function
-mod  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod1 <- Glm(Status ~ rcs(Family_Group_Size,4), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-# The 2 3-d plots aren't used in the manuscript: with interactions, too curvy to interpret.
-mod2 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod3 <- Glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# 3 is the minimum knot size permitted with Harrell's rcs function
 
-# Summary and ANOVA for mod
-summary(mod)
-anova(mod)
-AIC(mod)
-# Sex and Age with restricted cubic spline 3-knot curve and interaction all with
-# p < 0.05
-#   mod     AIC
+# Fit Model 1:    Status ~ rcs(Age, 3) * Sex
+Mod1  <- glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
+
+# Need Harrell's Glm for effect sizes and graphic with rms::Predict
+mod1  <- Glm(Status ~ rcs(Age,3) * Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# Where are the knots located?
+k <- attr (rcs(Donner$Age,3) ,'parms')
+k
+# knots located at Ages 1, 14, and 46
+# Null model
+mod_null <- glm(Status ~ 1, data = Donner, family = binomial())
+# Additive model
+mod2  <- Glm(Status ~ rcs(Age,3) + Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
+Mod2  <- glm(Status ~ rcs(Age,3) + Sex, data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# Test the models
+chi_sq_n1 <- anova(mod_null, Mod1, test="Chisq")
+# Print the results
+print(chi_sq_n1)
+# Summary and ANOVA for Mod1
+# Test whether the interaction model adds value.
+chi_sq_21 <- anova(Mod2, Mod1, test="Chisq")
+# Print the results
+print(chi_sq_21)
+# Summaries and effect sizes of the Age(rcs4) * Sex model
+summary(Mod1)
+anova(Mod1)
+AIC(Mod1)
+
+#Summary of Brute force fitting of AICs for interaction model
+#   mod1     AIC
 # 3 knots  95.40752 * Chosen because within 4 of lowest AIC
 # 4 knots  92.3582 ** Not chosen because only 3.04932 less than 3 knot solution
 # 5 knots  92.88625 
 # 6 knots Apparently Singular Matrix, no estimation possible
 
-# Summary and ANOVA for mod1, Family Group Size alone
-summary(mod1)
-anova(mod1)
-AIC(mod1)
-
-#   mod1    AIC
-# 3 knots 103.1001
-# 4 knots 100.9621  * This is the optimal knot size using the <4 AIC rule
-# 5 knots 100.4135  
-# 6 knots  98.86288
-# 7 knots  98.86288
-# AIC = 106.51
-# Very strong nonlinear effect of group size
-
-# Summary and ANOVA for mod2, Age + Sex + rcs(Family_Group_Size,knots) 
-#   mod2    AIC
-# 3 knots 103.1001
-# 4 knots 100.9621
-# 5 knots 100.4135 * Chosen because within 3.559712 AIC of minimum of 96.85368
-# 6 knots 98.86288 
-# 7 knots 96.85638
-# 8 knots 96.85638
-# 9 knots 96.85638
-summary(mod2)
-anova(mod2)
-AIC(mod2)
-#   mod2    AIC
-# 3 knots  99.96199
-# 4 knots  99.49113
-# 5 knots  96.27163 * Chosen because within 4 AIC of minimum
-# 6 knots  92.81669
-# 7 knots  92.63715
-# 8 knots  92.63715
-# 9 knots  92.63715
-
-# Strong effect of Sex, but not Age (p=0.24) or Family Group Size (p= 0.29)
-
-# Fit a restricted cubic spline regression for Age and Family Group Size with an
-# rcs(Age,3)* Sex interaction effect
-summary(mod3)
-anova(mod3)
+# Fit Family_Group_Size fit with base glm and Harrell's rms::Glm
+Mod3 <- glm(Status ~ rcs(Family_Group_Size,5), data = Donner, 
+            family = binomial(), x = TRUE, y = TRUE)
+mod3 <- Glm(Status ~ rcs(Family_Group_Size,5), data = Donner, 
+            family = binomial(), x = TRUE, y = TRUE)
+# Null model
+# Test the models
+chi_sq_n2 <- anova(mod_null, Mod3, test="Chisq")
+# Print the results
+print(chi_sq_n2)
+# Summary and ANOVA for mod
+summary(Mod3)
+anova(Mod3)
+summary(mod3)  # For effect size
 AIC(mod3)
-mod3
-# Age     FGS        AIC
-# 3 knots 4 knots    83.82654
-# 3 knots 5 knots    78.36897
-# 3 knots 6 knots    75.78856
-# 4 knots 5 knots    75.78856
-# 5 knots 4 knots    76.51016
-# 5 knots 5 knots    70.89114  
-# 5 knots 6 knots    64.75378 
-# 5 knots 7 knots    singular
-# 6 knots 4 knots    74.51321
-# 6 knots 5 knots    63.82448 
-# 6 knots 6 knots    56.32838 * Or, Error Singular matrix
-##### End of brute force approach
+AIC(Mod3)
+
+mod4 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+Mod4 <- glm(Status ~ Age + Sex + rcs(Family_Group_Size,4), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+mod5 <- Glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+Mod5 <- glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 
 ##### Second approach: GPT4 Streamlined the above code block with functions:
 
@@ -300,17 +284,17 @@ print_details <- function(model_result, model_name) {
 
 # Fitting models
 # Note that 3 is the minimum knot size for rcs, dozens of warnings with knots>6
-knot_range <- 3:6
-mod_results <- fit_best_rcs("Status ~ rcs(Age, KNOTS) * Sex", Donner, knot_range)
-mod1_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS)", Donner, knot_range)
-mod2_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS) * Sex", Donner, knot_range)
-mod3_results <- fit_best_double_rcs("Status ~ rcs(Age, knots_age) * Sex + rcs(Family_Group_Size, knots_fgs)", Donner, knot_range)
+knot_range <- 3:7
+mod1_results <- fit_best_rcs("Status ~ rcs(Age, KNOTS) * Sex", Donner, knot_range)
+mod3_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS)", Donner, knot_range)
+mod4_results <- fit_best_rcs("Status ~ rcs(Family_Group_Size, KNOTS) * Sex", Donner, knot_range)
+mod5_results <- fit_best_double_rcs("Status ~ rcs(Age, knots_age) * Sex + rcs(Family_Group_Size, knots_fgs)", Donner, knot_range)
 
 # Printing the details
-print_details(mod_results, "mod")
 print_details(mod1_results, "mod1")
-print_details(mod2_results, "mod2")
 print_details(mod3_results, "mod3")
+print_details(mod4_results, "mod4")
+print_details(mod5_results, "mod5")
 
 ###### End of GPT-4 AIC rcs optimization code ######
 
@@ -322,54 +306,55 @@ new_family_group_size <- seq(min(Donner$Family_Group_Size),
 new_sex <- unique(Donner$Sex)
 
 # Make predictions on the link scale (logit scale)
-link_pred  <- Predict(mod, Age = new_age, Sex = new_sex)
-link_pred1 <- Predict(mod1, Family_Group_Size = new_family_group_size)
-link_pred2 <- Predict(mod2, Age = new_age, Sex = new_sex,
+# The Predict function require fit by Glm not glm
+link_pred1 <- Predict(mod1, Age = new_age, Sex = new_sex)
+link_pred3 <- Predict(mod3, Family_Group_Size = new_family_group_size)
+link_pred4 <- Predict(mod4, Age = new_age, Sex = new_sex,
                       Family_Group_Size = new_family_group_size)
-link_pred3 <- Predict(mod3, Age = new_age, Sex = new_sex, 
+link_pred5 <- Predict(mod5, Age = new_age, Sex = new_sex, 
                       Family_Group_Size = new_family_group_size)
 
 # Transform predictions back to the original scale (probability scale)
-pred <- data.frame(
+pred1 <- data.frame(
   Age = rep(new_age, times = length(new_sex)),
   Sex = rep(new_sex, each = length(new_age)),
-  fit = plogis(link_pred$yhat),
-  lower = plogis(link_pred$lower),
-  upper = plogis(link_pred$upper)
-)
-
-pred1 <- data.frame(
-  Sex = rep(new_sex, each = length(new_age)),
-  Family_Group_Size = new_family_group_size,
   fit = plogis(link_pred1$yhat),
   lower = plogis(link_pred1$lower),
   upper = plogis(link_pred1$upper)
 )
 
-# Transform predictions back to the original scale (probability scale)
-pred2 <- data.frame(
-  Age = rep(new_age, times = length(new_sex)),
+pred3 <- data.frame(
   Sex = rep(new_sex, each = length(new_age)),
-  Family_Group_Size = rep(new_family_group_size, each = length(new_family_group_size)),
-  fit = plogis(link_pred2$yhat),
-  lower = plogis(link_pred2$lower),
-  upper = plogis(link_pred2$upper)
-)
-
-pred3 <-  data.frame(
-  Age = rep(new_age, times = length(new_sex)),
-  Sex = rep(new_sex, each = length(new_age)),
-  Family_Group_Size = rep(new_family_group_size, each = length(new_family_group_size)),
+  Family_Group_Size = new_family_group_size,
   fit = plogis(link_pred3$yhat),
   lower = plogis(link_pred3$lower),
   upper = plogis(link_pred3$upper)
+)
+
+# Transform predictions back to the original scale (probability scale)
+pred4 <- data.frame(
+  Age = rep(new_age, times = length(new_sex)),
+  Sex = rep(new_sex, each = length(new_age)),
+  Family_Group_Size = rep(new_family_group_size, each = length(new_family_group_size)),
+  fit = plogis(link_pred4$yhat),
+  lower = plogis(link_pred4$lower),
+  upper = plogis(link_pred4$upper)
+)
+
+pred5 <-  data.frame(
+  Age = rep(new_age, times = length(new_sex)),
+  Sex = rep(new_sex, each = length(new_age)),
+  Family_Group_Size = rep(new_family_group_size, each = length(new_family_group_size)),
+  fit = plogis(link_pred5$yhat),
+  lower = plogis(link_pred5$lower),
+  upper = plogis(link_pred5$upper)
 )
 # Adjust y-values for jittered points
 Donner$AdjustedStatus <- ifelse(Donner$Status == 0, -0.03, 1.03)
 
 # Plot the results for Figure 1 rcs(Age,3) * Sex model
 set.seed(13) 
-ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
+ggplot(pred1, aes(x = Age, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Age, y = AdjustedStatus,
@@ -381,22 +366,22 @@ ggplot(pred, aes(x = Age, y = fit, color = Sex)) +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 # Plot the results for the rcs(Family_Group_Size,4) model
-ggplot(pred1, aes(x = Family_Group_Size, y = fit, color = Sex)) +
+ggplot(pred3, aes(x = Family_Group_Size, y = fit, color = Sex)) +
   geom_line() +
   geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.2) +
   geom_jitter(data = Donner, aes(x = Family_Group_Size, y = AdjustedStatus,
               shape = Sex, color = Sex), width = 0.3, height = 0.03,
               size = 1.5) +
   labs(x = "Family Group Size", y = "Estimated Probability of Survival",
-  title = "Fig. 3. rcs(Family Group Size, 4) with 95% confidence intervals",
+  title = "Fig. 3. rcs(Family Group Size, 5) with 95% confidence intervals",
        color = "Sex") +
   theme_minimal() +
   scale_y_continuous(limits = c(-0.06, 1.06), breaks = seq(0, 1, 0.2))
 
 # Plot the results for the additive model, mod2 (graphic not used in manuscript)
-plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
+plot_3d_mod4 <- plot_ly(data = subset(pred4, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
                         type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
-  add_trace(data = subset(pred2, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
+  add_trace(data = subset(pred4, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
             type = "mesh3d", opacity = 0.6, name = "Female", showscale = FALSE) %>%
   layout(scene = list(zaxis = list(range = c(0, 1)),
                       xaxis = list(title = "Age"),
@@ -404,20 +389,20 @@ plot_3d_mod2 <- plot_ly(data = subset(pred2, Sex == "Male"), x = ~Age, y = ~Fami
                       zaxis = list(title = "Estimated Probability of Survival")),
 #         title = "Age + Sex + rcs(Family_Group_Size,6)")
        title = "Age + Sex + rcs(Family_Group_Size,6)")
-plot_3d_mod2
+plot_3d_mod4
 
 # Plot the results for the rcs(Age,3) * Sex * rcs(Family_Group-Size,5) 3-d model
 # Graphic not used in the manuscript (too curvy)
-plot_3d_mod3 <- plot_ly(data = subset(pred3, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
+plot_3d_mod5 <- plot_ly(data = subset(pred5, Sex == "Male"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
                         type = "mesh3d", opacity = 0.6, name = "Male", showscale = FALSE) %>%
-  add_trace(data = subset(pred3, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
+  add_trace(data = subset(pred5, Sex == "Female"), x = ~Age, y = ~Family_Group_Size, z = ~fit, 
             type = "mesh3d", opacity = 0.6, name = "Female", showscale = FALSE) %>%
   layout(scene = list(zaxis = list(range = c(0, 1)),
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
                       title = "rcs(Age,6) * Sex + rcs(Family_Group_Size,6)")
-plot_3d_mod3
+plot_3d_mod5
 
 ##### GAM analysis of the 79 Travelers #####
 ######## k-fold cross validation to find optimal k for the GAMs
@@ -770,7 +755,7 @@ Donner$TimeGroup <- cut(Donner$Survival_Time, breaks = c(0, 50, 100, max(Donner$
 # KM fit using Employee and stratified by TimeGroup
 km_fit_time <- survfit(Surv(Survival_Time, Death) ~ Employee + strata(TimeGroup), data = Donner)
 
-# Plot
+# Plot Stratified Kaplan_Meier curves.
 ggsurvplot(km_fit_time, data = Donner, risk.table = FALSE, 
            legend = "right", legend.title = "Sex",
            title = "Fig. 7. Kaplan-Meir Employee Survivorship Stratified by Time Intervals", conf.int = TRUE,
@@ -856,7 +841,9 @@ print(paste("Odds Ratio:", test_result$estimate))
 # Confidence interval for the odds ratio
 print(paste("95% Confidence Interval:", round(test_result$conf.int[1], 3), "to", round(test_result$conf.int[2], 3)))
 
-# Produces an SPSS-like table.
+# Produces an SPSS-like table.  Note that with the Essex data, warnings are
+# issued because the minimum sample sizes for 2 x 2 have expectations less
+# than 5. The proportions and Fisher's exact test are correct, hence CrossTable
 CrossTable(donner_matrix,digits=3,fisher = TRUE, chisq = TRUE, expected = TRUE,
            format = "SPSS")
 
