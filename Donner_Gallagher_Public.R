@@ -1,5 +1,5 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/19/23
+# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/20/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -34,6 +34,9 @@
 # Updated Demographic data in Donner.csv to conform to Grayson (2018)
 # 5) Renumbered the models and ran both glm and Glm on each model, the latter
 #    to get the data on rcs effect sizes and to plot the data Harrell-style.
+# 6) It appears that the 3-d plots are badly overfit due to the AIC optimization
+#    I'll reduce the number of knots and then have GPT-4 develop a k-fold
+#    cross validation to objectively choose appropriate knot numbers.
 
 # Used data imputation to fill in the missing age for Mr. Wolfinger
 # Have R determine family size by the numbers of individuals with the same
@@ -184,8 +187,9 @@ AIC(Mod3)
 
 mod4 <- Glm(Status ~ Age + Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 Mod4 <- glm(Status ~ Age + Sex + rcs(Family_Group_Size,4), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-mod5 <- Glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
-Mod5 <- glm(Status ~ rcs(Age,5) * Sex + rcs(Family_Group_Size,6), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+# for mod5, knot sizes of 3 & 5 determined by k-fold cross validation, code below
+mod5 <- Glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+Mod5 <- glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
 
 ##### Second approach: GPT4 Streamlined the above code block with functions:
 
@@ -401,8 +405,80 @@ plot_3d_mod5 <- plot_ly(data = subset(pred5, Sex == "Male"), x = ~Age, y = ~Fami
                       xaxis = list(title = "Age"),
                       yaxis = list(title = "Family Group Size"),
                       zaxis = list(title = "Estimated Probability of Survival")),
-                      title = "rcs(Age,6) * Sex + rcs(Family_Group_Size,6)")
+                      title = "rcs(Age,3) * Sex + rcs(Family_Group_Size,5)")
 plot_3d_mod5
+
+### 8/20/23 addendum. Fitting rcs knots with k-fold cross validation ##########
+# The AIC approach produces a badly overfit mod5 showing
+# a 3-d plot that was far too flexible. I sent a 3-p prompt on the problem to
+# GPT-4 and it provided this solution
+
+cv_rcs <- function(k_age, k_fgs, data, n_folds = 10){
+  
+  # Create a vector to store CV errors
+  cv_errors <- numeric(n_folds)
+  
+  # Create fold indices
+  fold_indices <- sample(rep(1:n_folds, length.out = nrow(data)))
+  
+  for(i in 1:n_folds){
+    
+    # Split the data into training and test sets
+    training_data <- data[fold_indices != i, ]
+    test_data <- data[fold_indices == i, ]
+    
+    # Fit the GLM model on the training data with rcs terms
+    glm_model <- glm(Status ~ rcs(Age, k_age) * Sex + rcs(Family_Group_Size, k_fgs), 
+                     data = training_data, family = binomial())
+    
+    # Predict on the test data
+    predictions <- predict(glm_model, newdata = test_data, type = "response")
+    
+    # Compute the binomial deviance (log loss) for the current fold and store it
+    cv_errors[i] <- -2 * sum(test_data$Status * log(predictions) + (1 - test_data$Status) * log(1 - predictions))
+    
+  }
+  
+  # Return the mean CV error
+  return(mean(cv_errors))
+}
+
+# Perform k-fold CV for a range of knot sizes
+k_values <- 3:7
+cv_results_matrix <- matrix(NA, nrow = length(k_values), ncol = length(k_values),
+                            dimnames = list(k_values, k_values))
+
+for(k_age in k_values){
+  for(k_fgs in k_values){
+    cv_results_matrix[as.character(k_age), as.character(k_fgs)] <- cv_rcs(k_age, k_fgs, Donner)
+  }
+}
+
+# Determine the optimal k_age and k_fgs based on minimum CV error
+optimal_indices <- which(cv_results_matrix == min(cv_results_matrix), arr.ind = TRUE)
+optimal_k_age <- as.numeric(rownames(cv_results_matrix)[optimal_indices[1,1]])
+optimal_k_fgs <- as.numeric(colnames(cv_results_matrix)[optimal_indices[1,2]])
+
+print(paste("Optimal k for Age: ", optimal_k_age))
+print(paste("Optimal k for Family_Group_Size: ", optimal_k_fgs))
+
+# Fit the optimal model
+best_glm_model <- glm(Status ~ rcs(Age, optimal_k_age) * Sex + 
+                      rcs(Family_Group_Size, optimal_k_fgs), 
+                      data = Donner, family = binomial())
+summary(best_glm_model)
+## This optimization produces Age: 3 knots, Family Group Size 5 knots.
+
+# Summary and ANOVA for mod5 with knot sizes determined by k-fold cross validation
+# Just repeating thise calculations for clarity.
+mod5 <- Glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+Mod5 <- glm(Status ~ rcs(Age,3) * Sex + rcs(Family_Group_Size,5), data = Donner, family = binomial(), x = TRUE, y = TRUE)
+summary(Mod5)
+anova(Mod5)
+summary(mod5)  # For effect size
+AIC(mod5)
+
+### end of 8/20/23 GPT-4 code. #################################################
 
 ##### GAM analysis of the 79 Travelers #####
 ######## k-fold cross validation to find optimal k for the GAMs
@@ -619,13 +695,13 @@ colors <- c("red", "blue", "magenta", "purple")
 linetypes <- c("dashed", "dotted", "dotdash", "longdash")
 labels <- c("1st", "2nd", "3rd", "4th")
 
-# Plot the KM curve & Risk Table for Sex
+# Plot Fig. 6 the KM curve & Risk Table for Sex
 
 # Generate KM plot without the risk table
 p1 <- ggsurvplot(km_fit, data = Donner, risk.table = FALSE,
                  pval = TRUE, pval.coord = c(0.8, 0.25),
                  legend = "right", legend.title = "Sex",
-                 title = "Fig. 5. Kaplan-Meier Survivorship by Sex",
+                 title = "Fig. 6. Kaplan-Meier Survivorship by Sex",
                  legend.labs = c("Female", "Male"), conf.int = TRUE,
                  break.x.by = 20)
 
@@ -714,11 +790,11 @@ colors <- c("red", "blue", "magenta", "purple")
 linetypes <- c("dashed", "dotted", "dotdash", "longdash")
 labels <- c("1st", "2nd", "3rd", "4th")
 
-# Generate KM plot without the risk table
+# Generate Fig. 7 KM plot for employment with the risk table
 p1 <- ggsurvplot(km_fit, data = Donner, risk.table = FALSE,
                  pval = TRUE, pval.coord = c(0.8, 0.25),
                  legend = "right", legend.title = "Sex",
-                 title = "Fig. 6. Kaplan-Meier Survivorship by Employment",
+                 title = "Fig. 7. Kaplan-Meier Survivorship by Employment",
                  legend.labs = c("Family Member", "Employee"), conf.int = TRUE,
                  break.x.by = 20)
 
@@ -758,7 +834,7 @@ km_fit_time <- survfit(Surv(Survival_Time, Death) ~ Employee + strata(TimeGroup)
 # Plot Stratified Kaplan_Meier curves.
 ggsurvplot(km_fit_time, data = Donner, risk.table = FALSE, 
            legend = "right", legend.title = "Sex",
-           title = "Fig. 7. Kaplan-Meir Employee Survivorship Stratified by Time Intervals", conf.int = TRUE,
+           title = "Fig. 8. Kaplan-Meir Employee Survivorship Stratified by Time Intervals", conf.int = TRUE,
            break.x.by = 20)
 
 # 4.3 Calculate and plot the hazard ratio for Employment
