@@ -1,5 +1,6 @@
 # Donner_Gallagher_Public
-# Written by Eugene.Gallagher@umb.edu 7/10/23, last revised 8/20/23
+# Written by Eugene Gallagher, Associate Professor, School for the Environment
+# UMass Boston, Eugene.Gallagher@umb.edu 7/10/23, last revised 8/23/23
 # Analysis of Donner data from Grayson (1990, Table 1 &  Grayson 1994)
 # Aided by OpenAI GPT-4
 # References
@@ -69,7 +70,7 @@ library(tidyverse) # contains dplyr and ggplot2
 Donner <- read.csv("https://raw.githubusercontent.com/EugeneGall/donner-data-analysis/main/Donner.csv")
 
 # Calculate family size based on Last_Name, but Family_Group_Size from Grayson
-# (1990, 2018) Table 1 will be used in this code's analyses.
+# (1990, 2018) Table will be used in this code's analyses.
 Donner$Family_Size <- as.integer(ave(Donner$Last_Name, Donner$Last_Name, FUN =length))
 
 str(Donner)
